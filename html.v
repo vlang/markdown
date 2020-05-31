@@ -2,7 +2,8 @@
  * MD4C: Markdown parser for C
  * (http://github.com/mity/md4c)
  *
- * Copyright (c) 2016-2019 Martin Mitas
+ * Copyright (c) 2016-2019 Martin Mitáš 
+ * Copyright (c) 2020 Ned Palacios (V bindings)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
