@@ -29,27 +29,7 @@ module markdown
 import strings
 
 fn C.md_html(orig_input charptr, orig_input_size u32, process_output ProcessFn, userdata voidptr, parser_flags u32, renderer_flags u32) int
-fn C.strchr(str charptr, ch int) byte
 
-// workaround
-struct C.MD_BLOCK_H_DETAIL {
-pub:
-	level u32
-}
-
-struct C.MD_SPAN_WIKILINK_DETAIL {
-pub:
-	target C.MD_ATTRIBUTE
-}
-
-struct C.MD_HTML {
-	process_output ProcessFn
-	userdata voidptr
-	flags u32
-mut:
-	image_nesting_level int
-	escape_map []byte = []byte{len: 256}
-}
 
 const (
 	need_html_esc_flag = 0x1
