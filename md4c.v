@@ -24,9 +24,10 @@
  */
 module markdown
 
-#flag -I @VROOT/md4c
-#flag @VROOT/md4c/md4c.o
+#flag -I @VROOT/lib/md4c
+#flag @VROOT/lib/md4c-lib.o
 #include "md4c.h"
+#include "md4c-html.h"
 
 type BlockFn = fn (t MD_BLOCKTYPE, d voidptr, u voidptr) int
 type SpanFn = fn (t MD_SPANTYPE, d voidptr, u voidptr) int
