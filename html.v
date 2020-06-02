@@ -50,9 +50,9 @@ pub fn to_html(input string) string {
 	mut wr := strings.new_builder(200)
 
 	output_fn := fn (txt charptr, s u32, d voidptr) {
-		write_data(&strings.Builder(d), tos(byteptr(txt), s))
+		write_data(&strings.Builder(d), tos(byteptr(txt), int(s)))
 	}
 
 	C.md_html(input.str, input.len, output_fn, &wr, C.MD_DIALECT_GITHUB, 0)
-	return wr.str()
+	return wr.str().trim_space()
 }
