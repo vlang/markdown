@@ -30,7 +30,6 @@ import strings
 
 fn C.md_html(orig_input charptr, orig_input_size u32, process_output ProcessFn, userdata voidptr, parser_flags u32, renderer_flags u32) int
 
-
 const (
 	need_html_esc_flag = 0x1
 	need_url_esc_flag  = 0x2
@@ -40,7 +39,6 @@ const (
 )
 
 type ProcessFn = fn (t charptr, s u32, d voidptr)
-
 
 fn write_data(sb &strings.Builder, txt string) {
 	sb.write(txt)
