@@ -38,19 +38,15 @@ const (
 	md_html_flag_skip_utf8_bom = 0x0004
 )
 
-type ProcessFn = fn (t charptr, s u32, d voidptr)
+type ProcessFn = fn (t charptr, s u32, x voidptr)
 
-fn write_data(sb &strings.Builder, txt string) {
-	sb.write(txt)
+fn write_data_cb(txt charptr, size u32, mut sb strings.Builder) {
+	s := tos(byteptr(txt), int(size))
+	sb.write(s)
 }
 
 pub fn to_html(input string) string {
 	mut wr := strings.new_builder(200)
-
-	output_fn := fn (txt charptr, s u32, d voidptr) {
-		write_data(&strings.Builder(d), tos(byteptr(txt), int(s)))
-	}
-
-	C.md_html(input.str, input.len, output_fn, &wr, C.MD_DIALECT_GITHUB, 0)
+	C.md_html(input.str, input.len, write_data_cb, &wr, C.MD_DIALECT_GITHUB, 0)
 	return wr.str().trim_space()
 }

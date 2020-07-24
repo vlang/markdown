@@ -96,13 +96,9 @@ fn md_text(orig_input charptr, input_size u32, process_output ProcessFn, userdat
 	return parse(charptr(input.str), input_size, &parser, &pt)
 }
 
+
 pub fn to_plain(input string) string {
 	mut wr := strings.new_builder(200)
-
-	output_fn := fn (txt charptr, s u32, d voidptr) {
-		write_data(&strings.Builder(d), tos(byteptr(txt), int(s)))
-	}
-
-	md_text(charptr(input.str), u32(input.len), output_fn, &wr, u32(C.MD_DIALECT_GITHUB), 0)
+	md_text(charptr(input.str), u32(input.len), write_data_cb, &wr, u32(C.MD_DIALECT_GITHUB), 0)
 	return wr.str().trim_space()
 }
