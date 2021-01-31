@@ -2,7 +2,7 @@
  * MD4C: Markdown parser for C
  * (http://github.com/mity/md4c)
  *
- * Copyright (c) 2016-2019 Martin Mitáš 
+ * Copyright (c) 2016-2019 Martin Mitáš
  * Copyright (c) 2020 Ned Palacios (V bindings)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -42,10 +42,14 @@ fn render_output(md &MdPlaintext, text charptr, size u32) {
 }
 
 fn pt_enter_block_callback(typ MD_BLOCKTYPE, detail voidptr, userdata voidptr) int {
+	// TODO Remove, functions can't have two args with name `_`
+	_ = typ
+	_ = detail
+	_ = userdata
 	return 0
 }
 
-fn pt_leave_block_callback(typ MD_BLOCKTYPE, detail voidptr, userdata voidptr) int {
+fn pt_leave_block_callback(typ MD_BLOCKTYPE, _ voidptr, userdata voidptr) int {
 	md := &MdPlaintext(userdata)
 
 	if typ !in [.md_block_doc, .md_block_hr, .md_block_html] {
@@ -56,10 +60,18 @@ fn pt_leave_block_callback(typ MD_BLOCKTYPE, detail voidptr, userdata voidptr) i
 }
 
 fn pt_enter_span_callback(typ MD_SPANTYPE, detail voidptr, userdata voidptr) int {
+	// TODO Remove, functions can't have two args with name `_`
+	_ = typ
+	_ = detail
+	_ = userdata
 	return 0
 }
 
 fn pt_leave_span_callback(typ MD_SPANTYPE, detail voidptr, userdata voidptr) int {
+	// TODO Remove, functions can't have two args with name `_`
+	_ = typ
+	_ = detail
+	_ = userdata
 	return 0
 }
 
@@ -68,7 +80,7 @@ fn pt_text_callback(typ MD_TEXTTYPE, text charptr, size u32, userdata voidptr) i
 	match typ {
 		.md_text_null_char {}
 		.md_text_html {}
-		.md_text_br, 
+		.md_text_br,
 		.md_text_softbr { render_output(md, charptr(nl.str), u32(nl.len)) }
 		else { render_output(md, text, size) }
 	}
@@ -76,16 +88,20 @@ fn pt_text_callback(typ MD_TEXTTYPE, text charptr, size u32, userdata voidptr) i
 	return 0
 }
 
-fn pt_debug_log_callback(msg charptr, userdata voidptr) {}
+fn pt_debug_log_callback(msg charptr, userdata voidptr) {
+	// TODO Remove, functions can't have two args with name `_`
+	_ = msg
+	_ = userdata
+}
 
-fn md_text(orig_input charptr, input_size u32, process_output ProcessFn, userdata voidptr, parser_flags u32, renderer_flags u32) int {
+fn md_text(orig_input charptr, input_size u32, process_output ProcessFn, userdata voidptr, parser_flags u32) int {
 	parser := new(
-		parser_flags, 
-		pt_enter_block_callback, 
-		pt_leave_block_callback, 
-		pt_enter_span_callback, 
-		pt_leave_span_callback, 
-		pt_text_callback, 
+		parser_flags,
+		pt_enter_block_callback,
+		pt_leave_block_callback,
+		pt_enter_span_callback,
+		pt_leave_span_callback,
+		pt_text_callback,
 		pt_debug_log_callback
 	)
 	mut pt := MdPlaintext{
@@ -99,6 +115,6 @@ fn md_text(orig_input charptr, input_size u32, process_output ProcessFn, userdat
 
 pub fn to_plain(input string) string {
 	mut wr := strings.new_builder(200)
-	md_text(charptr(input.str), u32(input.len), write_data_cb, &wr, u32(C.MD_DIALECT_GITHUB), 0)
+	md_text(charptr(input.str), u32(input.len), write_data_cb, &wr, u32(C.MD_DIALECT_GITHUB))
 	return wr.str().trim_space()
 }
