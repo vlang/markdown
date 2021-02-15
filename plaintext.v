@@ -108,7 +108,7 @@ fn md_text(orig_input charptr, input_size u32, process_output ProcessFn, userdat
 		userdata: userdata,
 		process_output: process_output
 	}
-	mut input := tos3(orig_input)
+	mut input := unsafe { tos3(orig_input) }
 	return parse(charptr(input.str), input_size, &parser, &pt)
 }
 
