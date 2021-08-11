@@ -2,7 +2,7 @@
  * MD4C: Markdown parser for C
  * (http://github.com/mity/md4c)
  *
- * Copyright (c) 2016-2019 Martin Mitáš 
+ * Copyright (c) 2016-2019 Martin Mitáš
  * Copyright (c) 2020 Ned Palacios (V bindings)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -159,7 +159,7 @@ pub:
 	target C.MD_ATTRIBUTE
 }
 
-pub fn C.md_parse(text charptr, size u32, parser &C.MD_PARSER, userdata voidptr) int
+fn C.md_parse(text charptr, size u32, parser &C.MD_PARSER, userdata voidptr) int
 
 pub fn new(parser_flags u32, enter_block_cb BlockFn, leave_block_cb BlockFn, enter_span_cb SpanFn, leave_span_cb SpanFn, text_cb TextFn, debug_cb DebugFn) C.MD_PARSER {
 	return C.MD_PARSER{
