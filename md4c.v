@@ -88,6 +88,7 @@ pub enum MD_ALIGN {
 	md_align_right
 }
 
+[typedef]
 pub struct C.MD_PARSER {
 pub:
 	abi_version u32
@@ -100,6 +101,7 @@ pub:
 	debug_log   DebugFn
 }
 
+[typedef]
 pub struct C.MD_ATTRIBUTE {
 pub:
 	text           &char
@@ -108,12 +110,14 @@ pub:
 	substr_offsets u32
 }
 
+[typedef]
 pub struct C.MD_BLOCK_UL_DETAIL {
 pub:
 	is_tight int
 	mark     byte
 }
 
+[typedef]
 pub struct C.MD_BLOCK_OL_DETAIL {
 pub:
 	start          u32
@@ -121,6 +125,7 @@ pub:
 	mark_delimiter byte
 }
 
+[typedef]
 pub struct C.MD_BLOCK_LI_DETAIL {
 pub:
 	is_task          int
@@ -128,11 +133,13 @@ pub:
 	task_mark_offset u32
 }
 
+[typedef]
 pub struct C.MD_BLOCK_H_DETAIL {
 pub:
 	level u32
 }
 
+[typedef]
 pub struct C.MD_BLOCK_CODE_DETAIL {
 pub:
 	info       C.MD_ATTRIBUTE
@@ -140,23 +147,27 @@ pub:
 	fence_char byte
 }
 
+[typedef]
 pub struct C.MD_BLOCK_TD_DETAIL {
 pub:
 	align MD_ALIGN
 }
 
+[typedef]
 pub struct C.MD_SPAN_A_DETAIL {
 pub:
 	href  C.MD_ATTRIBUTE
 	title C.MD_ATTRIBUTE
 }
 
+[typedef]
 pub struct C.MD_SPAN_IMG_DETAIL {
 pub:
 	src   C.MD_ATTRIBUTE
 	title C.MD_ATTRIBUTE
 }
 
+[typedef]
 pub struct C.MD_SPAN_WIKILINK_DETAIL {
 pub:
 	target C.MD_ATTRIBUTE
