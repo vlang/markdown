@@ -162,7 +162,7 @@ pub:
 	target C.MD_ATTRIBUTE
 }
 
-pub fn C.md_parse(text &char, size u32, parser &C.MD_PARSER, userdata voidptr) int
+fn C.md_parse(text &char, size u32, parser &C.MD_PARSER, userdata voidptr) int
 
 pub fn new(parser_flags u32, enter_block_cb BlockFn, leave_block_cb BlockFn, enter_span_cb SpanFn, leave_span_cb SpanFn, text_cb TextFn, debug_cb DebugFn) C.MD_PARSER {
 	return C.MD_PARSER{
@@ -177,6 +177,6 @@ pub fn new(parser_flags u32, enter_block_cb BlockFn, leave_block_cb BlockFn, ent
 	}
 }
 
-pub fn parse(text &char, size u32, parser &C.MD_PARSER, userdata voidptr) int {
+fn parse(text &char, size u32, parser &C.MD_PARSER, userdata voidptr) int {
 	return C.md_parse(text, size, parser, userdata)
 }
