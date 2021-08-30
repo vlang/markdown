@@ -1,8 +1,8 @@
 /*
- * MD4C: Markdown parser for C
+* MD4C: Markdown parser for C
  * (http://github.com/mity/md4c)
  *
- * Copyright (c) 2016-2019 Martin Mitáš 
+ * Copyright (c) 2016-2019 Martin Mitáš
  * Copyright (c) 2020 Ned Palacios (V bindings)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -22,7 +22,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
- */
+*/
 module markdown
 
 #flag -I @VROOT/lib/md4c
@@ -31,9 +31,12 @@ module markdown
 #include "md4c-html.h"
 
 type BlockFn = fn (t MD_BLOCKTYPE, d voidptr, u voidptr) int
+
 type SpanFn = fn (t MD_SPANTYPE, d voidptr, u voidptr) int
-type TextFn = fn (t MD_TEXTTYPE, tx charptr, s u32, u voidptr) int
-type DebugFn = fn (m charptr, u voidptr)
+
+type TextFn = fn (t MD_TEXTTYPE, tx &char, s u32, u voidptr) int
+
+type DebugFn = fn (m &char, u voidptr)
 
 pub enum MD_BLOCKTYPE {
 	md_block_doc = 0
@@ -88,40 +91,40 @@ pub enum MD_ALIGN {
 pub struct C.MD_PARSER {
 pub:
 	abi_version u32
-	flags u32
+	flags       u32
 	enter_block BlockFn
 	leave_block BlockFn
-	enter_span SpanFn
-	leave_span SpanFn
-	text TextFn
-	debug_log DebugFn
+	enter_span  SpanFn
+	leave_span  SpanFn
+	text        TextFn
+	debug_log   DebugFn
 }
 
 pub struct C.MD_ATTRIBUTE {
 pub:
-	text charptr
-	size u32
-	substr_types MD_TEXTTYPE
+	text           &char
+	size           u32
+	substr_types   MD_TEXTTYPE
 	substr_offsets u32
 }
 
 pub struct C.MD_BLOCK_UL_DETAIL {
 pub:
 	is_tight int
-	mark byte
+	mark     byte
 }
 
 pub struct C.MD_BLOCK_OL_DETAIL {
 pub:
-	start u32
-	is_tight int
+	start          u32
+	is_tight       int
 	mark_delimiter byte
 }
 
 pub struct C.MD_BLOCK_LI_DETAIL {
 pub:
-	is_task int
-	task_mark byte
+	is_task          int
+	task_mark        byte
 	task_mark_offset u32
 }
 
@@ -132,8 +135,8 @@ pub:
 
 pub struct C.MD_BLOCK_CODE_DETAIL {
 pub:
-	info C.MD_ATTRIBUTE
-	lang C.MD_ATTRIBUTE
+	info       C.MD_ATTRIBUTE
+	lang       C.MD_ATTRIBUTE
 	fence_char byte
 }
 
@@ -144,13 +147,13 @@ pub:
 
 pub struct C.MD_SPAN_A_DETAIL {
 pub:
-	href C.MD_ATTRIBUTE
+	href  C.MD_ATTRIBUTE
 	title C.MD_ATTRIBUTE
 }
 
 pub struct C.MD_SPAN_IMG_DETAIL {
 pub:
-	src C.MD_ATTRIBUTE
+	src   C.MD_ATTRIBUTE
 	title C.MD_ATTRIBUTE
 }
 
@@ -159,7 +162,7 @@ pub:
 	target C.MD_ATTRIBUTE
 }
 
-pub fn C.md_parse(text charptr, size u32, parser &C.MD_PARSER, userdata voidptr) int
+pub fn C.md_parse(text &char, size u32, parser &C.MD_PARSER, userdata voidptr) int
 
 pub fn new(parser_flags u32, enter_block_cb BlockFn, leave_block_cb BlockFn, enter_span_cb SpanFn, leave_span_cb SpanFn, text_cb TextFn, debug_cb DebugFn) C.MD_PARSER {
 	return C.MD_PARSER{
@@ -174,6 +177,6 @@ pub fn new(parser_flags u32, enter_block_cb BlockFn, leave_block_cb BlockFn, ent
 	}
 }
 
-pub fn parse(text charptr, size u32, parser &C.MD_PARSER, userdata voidptr) int {
+pub fn parse(text &char, size u32, parser &C.MD_PARSER, userdata voidptr) int {
 	return C.md_parse(text, size, parser, userdata)
 }

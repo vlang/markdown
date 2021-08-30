@@ -1,8 +1,8 @@
 /*
- * MD4C: Markdown parser for C
+* MD4C: Markdown parser for C
  * (http://github.com/mity/md4c)
  *
- * Copyright (c) 2016-2019 Martin Mitáš 
+ * Copyright (c) 2016-2019 Martin Mitáš
  * Copyright (c) 2020 Ned Palacios (V bindings)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -22,7 +22,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
- */
+*/
 
 module markdown
 
