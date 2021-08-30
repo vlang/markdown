@@ -28,32 +28,55 @@ module markdown
 // Renderer represents an entity that accepts incoming data and renders the content.
 pub interface Renderer {
 mut:
-	enter_block(typ MD_BLOCKTYPE, detail voidptr) int
-	leave_block(typ MD_BLOCKTYPE, detail voidptr) int
-	enter_span(typ MD_SPANTYPE, detail voidptr) int
-	leave_span(typ MD_SPANTYPE, detail voidptr) int
-	text(typ MD_TEXTTYPE, content string) int
+	enter_block(typ MD_BLOCKTYPE, detail voidptr) ?
+	leave_block(typ MD_BLOCKTYPE, detail voidptr) ?
+	enter_span(typ MD_SPANTYPE, detail voidptr) ?
+	leave_span(typ MD_SPANTYPE, detail voidptr) ?
+	text(typ MD_TEXTTYPE, content string) ?
 	debug_log(msg string)
 }
 
+fn renderer_handle_error(err IError) int {
+	if err.code != 0 {
+		return err.code
+	} else {
+		return 1
+	}
+}
+
 fn renderer_enter_block_cb(typ MD_BLOCKTYPE, detail voidptr, mut renderer Renderer) int {
-	return renderer.enter_block(typ, detail)
+	renderer.enter_block(typ, detail) or {
+		return renderer_handle_error(err)
+	}
+	return 0
 }
 
 fn renderer_leave_block_cb(typ MD_BLOCKTYPE, detail voidptr, mut renderer Renderer) int {
-	return renderer.leave_block(typ, detail)
+	renderer.leave_block(typ, detail) or {
+		return renderer_handle_error(err)
+	}
+	return 0
 }
 
 fn renderer_enter_span_cb(typ MD_SPANTYPE, detail voidptr, mut renderer Renderer) int {
-	return renderer.enter_span(typ, detail)
+	renderer.enter_span(typ, detail) or {
+		return renderer_handle_error(err)
+	}
+	return 0
 }
 
 fn renderer_leave_span_cb(typ MD_SPANTYPE, detail voidptr, mut renderer Renderer) int {
-	return renderer.leave_span(typ, detail)
+	renderer.leave_span(typ, detail) or {
+		return renderer_handle_error(err)
+	}
+	return 0
 }
 
 fn renderer_text_cb(typ MD_TEXTTYPE, text &char, size u32, mut renderer Renderer) int {
-	return renderer.text(typ, unsafe { text.vstring_with_len(int(size)) })
+	renderer.text(typ, unsafe { text.vstring_with_len(int(size)) }) or {
+		return renderer_handle_error(err)
+	}
+	return 0
 }
 
 fn renderer_debug_log_cb(msg &char, mut renderer Renderer) {

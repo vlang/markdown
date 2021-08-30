@@ -33,36 +33,31 @@ mut:
 	writer strings.Builder = strings.new_builder(200)
 }
 
-fn (mut pt PlaintextRenderer) enter_block(typ MD_BLOCKTYPE, detail voidptr) int {
+fn (mut pt PlaintextRenderer) enter_block(typ MD_BLOCKTYPE, detail voidptr) ? {
 	// TODO Remove, functions can't have two args with name `_`
 	_ = typ
 	_ = detail
-	return 0
 }
 
-fn (mut pt PlaintextRenderer) leave_block(typ MD_BLOCKTYPE, _ voidptr) int {
+fn (mut pt PlaintextRenderer) leave_block(typ MD_BLOCKTYPE, _ voidptr) ? {
 	if typ !in [.md_block_doc, .md_block_hr, .md_block_html] {
 		pt.writer.write_b(`\n`)
 	}
-
-	return 0
 }
 
-fn (mut pt PlaintextRenderer) enter_span(typ MD_SPANTYPE, detail voidptr) int {
+fn (mut pt PlaintextRenderer) enter_span(typ MD_SPANTYPE, detail voidptr) ? {
 	// TODO Remove, functions can't have two args with name `_`
 	_ = typ
 	_ = detail
-	return 0
 }
 
-fn (mut pt PlaintextRenderer) leave_span(typ MD_SPANTYPE, detail voidptr) int {
+fn (mut pt PlaintextRenderer) leave_span(typ MD_SPANTYPE, detail voidptr) ? {
 	// TODO Remove, functions can't have two args with name `_`
 	_ = typ
 	_ = detail
-	return 0
 }
 
-fn (mut pt PlaintextRenderer) text(typ MD_TEXTTYPE, text string) int {
+fn (mut pt PlaintextRenderer) text(typ MD_TEXTTYPE, text string) ? {
 	match typ {
 		.md_text_null_char {}
 		.md_text_html {}
@@ -73,12 +68,9 @@ fn (mut pt PlaintextRenderer) text(typ MD_TEXTTYPE, text string) int {
 			pt.writer.write_string(text)
 		}
 	}
-
-	return 0
 }
 
 fn (mut pt PlaintextRenderer) debug_log(msg string) {
-	// TODO Remove, functions can't have two args with name `_`
 	unsafe { msg.free() }
 }
 
