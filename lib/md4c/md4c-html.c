@@ -195,7 +195,7 @@ render_utf8_codepoint(MD_HTML* r, unsigned codepoint,
     }
 
     if(0 < codepoint  &&  codepoint <= 0x10ffff)
-        fn_append(r, (char*)utf8, n);
+        fn_append(r, (char*)utf8, (MD_SIZE)n);
     else
         fn_append(r, utf8_replacement_char, 3);
 }
@@ -207,7 +207,7 @@ render_entity(MD_HTML* r, const MD_CHAR* text, MD_SIZE size,
               void (*fn_append)(MD_HTML*, const MD_CHAR*, MD_SIZE))
 {
     if(r->flags & MD_HTML_FLAG_VERBATIM_ENTITIES) {
-        fn_append(r, text, size);
+        render_verbatim(r, text, size);
         return;
     }
 
@@ -555,7 +555,7 @@ md_html(const MD_CHAR* input, MD_SIZE input_size,
         if(strchr("\"&<>", ch) != NULL)
             render.escape_map[i] |= NEED_HTML_ESC_FLAG;
 
-        if(!ISALNUM(ch)  &&  strchr("-_.+!*(),%#@?=;:/,+$", ch) == NULL)
+        if(!ISALNUM(ch)  &&  strchr("~-_.+!*(),%#@?=;:/,+$", ch) == NULL)
             render.escape_map[i] |= NEED_URL_ESC_FLAG;
     }
 
