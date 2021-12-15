@@ -38,8 +38,8 @@ mut:
 }
 
 fn renderer_handle_error(err IError) int {
-	if err.code != 0 {
-		return err.code
+	if err.code() != 0 {
+		return err.code()
 	} else {
 		return 1
 	}
