@@ -1,5 +1,5 @@
 /*
- * MD4C: Markdown parser for C
+* MD4C: Markdown parser for C
  * (http://github.com/mity/md4c)
  *
  * Copyright (c) 2016-2019 Martin Mitáš
@@ -42,7 +42,7 @@ fn (mut pt PlaintextRenderer) enter_block(typ MD_BLOCKTYPE, detail voidptr) ? {
 
 fn (mut pt PlaintextRenderer) leave_block(typ MD_BLOCKTYPE, _ voidptr) ? {
 	if typ !in [.md_block_doc, .md_block_hr, .md_block_html] {
-		pt.writer.write_b(`\n`)
+		pt.writer.write_byte(`\n`)
 	}
 }
 
@@ -63,7 +63,7 @@ fn (mut pt PlaintextRenderer) text(typ MD_TEXTTYPE, text string) ? {
 		.md_text_null_char {}
 		.md_text_html {}
 		.md_text_br, .md_text_softbr {
-			pt.writer.write_b(`\n`)
+			pt.writer.write_byte(`\n`)
 		}
 		else {
 			pt.writer.write_string(text)
@@ -77,8 +77,6 @@ fn (mut pt PlaintextRenderer) debug_log(msg string) {
 
 pub fn to_plain(input string) string {
 	mut pt_renderer := PlaintextRenderer{}
-	render(input, mut pt_renderer) or {
-		return ''
-	}
+	render(input, mut pt_renderer) or { return '' }
 	return pt_renderer.writer.str().trim_space()
 }
