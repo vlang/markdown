@@ -115,7 +115,7 @@ pub:
 pub struct C.MD_BLOCK_UL_DETAIL {
 pub:
 	is_tight int
-	mark     byte
+	mark     u8
 }
 
 [typedef]
@@ -123,14 +123,14 @@ pub struct C.MD_BLOCK_OL_DETAIL {
 pub:
 	start          u32
 	is_tight       int
-	mark_delimiter byte
+	mark_delimiter u8
 }
 
 [typedef]
 pub struct C.MD_BLOCK_LI_DETAIL {
 pub:
 	is_task          int
-	task_mark        byte
+	task_mark        u8
 	task_mark_offset u32
 }
 
@@ -145,7 +145,7 @@ pub struct C.MD_BLOCK_CODE_DETAIL {
 pub:
 	info       C.MD_ATTRIBUTE
 	lang       C.MD_ATTRIBUTE
-	fence_char byte
+	fence_char u8
 }
 
 [typedef]

@@ -42,7 +42,7 @@ const (
 type ProcessFn = fn (t &char, s u32, x voidptr)
 
 fn write_data_cb(txt &char, size u32, mut sb strings.Builder) {
-	s := unsafe { tos(&byte(txt), int(size)) }
+	s := unsafe { tos(&u8(txt), int(size)) }
 	sb.write_string(s)
 }
 

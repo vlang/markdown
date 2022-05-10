@@ -46,30 +46,22 @@ fn renderer_handle_error(err IError) int {
 }
 
 fn renderer_enter_block_cb(typ MD_BLOCKTYPE, detail voidptr, mut renderer Renderer) int {
-	renderer.enter_block(typ, detail) or {
-		return renderer_handle_error(err)
-	}
+	renderer.enter_block(typ, detail) or { return renderer_handle_error(err) }
 	return 0
 }
 
 fn renderer_leave_block_cb(typ MD_BLOCKTYPE, detail voidptr, mut renderer Renderer) int {
-	renderer.leave_block(typ, detail) or {
-		return renderer_handle_error(err)
-	}
+	renderer.leave_block(typ, detail) or { return renderer_handle_error(err) }
 	return 0
 }
 
 fn renderer_enter_span_cb(typ MD_SPANTYPE, detail voidptr, mut renderer Renderer) int {
-	renderer.enter_span(typ, detail) or {
-		return renderer_handle_error(err)
-	}
+	renderer.enter_span(typ, detail) or { return renderer_handle_error(err) }
 	return 0
 }
 
 fn renderer_leave_span_cb(typ MD_SPANTYPE, detail voidptr, mut renderer Renderer) int {
-	renderer.leave_span(typ, detail) or {
-		return renderer_handle_error(err)
-	}
+	renderer.leave_span(typ, detail) or { return renderer_handle_error(err) }
 	return 0
 }
 
@@ -84,7 +76,7 @@ fn renderer_debug_log_cb(msg &char, mut renderer Renderer) {
 	renderer.debug_log(unsafe { msg.vstring() })
 }
 
-// render parses and renders a given markdown string based on the renderer. 
+// render parses and renders a given markdown string based on the renderer.
 pub fn render(src string, mut renderer Renderer) ? {
 	parser := new(u32(C.MD_DIALECT_GITHUB), renderer_enter_block_cb, renderer_leave_block_cb,
 		renderer_enter_span_cb, renderer_leave_span_cb, renderer_text_cb, renderer_debug_log_cb)

@@ -42,7 +42,7 @@ fn (mut pt PlaintextRenderer) enter_block(typ MD_BLOCKTYPE, detail voidptr) ? {
 
 fn (mut pt PlaintextRenderer) leave_block(typ MD_BLOCKTYPE, _ voidptr) ? {
 	if typ !in [.md_block_doc, .md_block_hr, .md_block_html] {
-		pt.writer.write_byte(`\n`)
+		pt.writer.write_u8(`\n`)
 	}
 }
 
@@ -63,7 +63,7 @@ fn (mut pt PlaintextRenderer) text(typ MD_TEXTTYPE, text string) ? {
 		.md_text_null_char {}
 		.md_text_html {}
 		.md_text_br, .md_text_softbr {
-			pt.writer.write_byte(`\n`)
+			pt.writer.write_u8(`\n`)
 		}
 		else {
 			pt.writer.write_string(text)
