@@ -27,10 +27,10 @@
 
 module markdown
 
-fn test_render() ? {
+fn test_render() {
 	mut pt := PlaintextRenderer{}
 	text := '# Hello World\nhello **bold**'
-	render(text, mut pt) ?
+	render(text, mut pt)!
 	out := pt.writer.str()
 	assert out == 'Hello World\nhello bold\n'
 }
