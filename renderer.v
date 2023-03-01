@@ -77,7 +77,7 @@ fn renderer_debug_log_cb(msg &char, mut renderer Renderer) {
 }
 
 // render parses and renders a given markdown string based on the renderer.
-pub fn render(src string, mut renderer Renderer) ? {
+pub fn render(src string, mut renderer Renderer) ! {
 	parser := new(u32(C.MD_DIALECT_GITHUB), renderer_enter_block_cb, renderer_leave_block_cb,
 		renderer_enter_span_cb, renderer_leave_span_cb, renderer_text_cb, renderer_debug_log_cb)
 
