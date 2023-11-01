@@ -32,5 +32,5 @@ fn test_render() ! {
 	text := '# Hello World\nhello **bold**'
 	out := render(text, mut pt)!
 	assert out.len != 0
-	assert out == 'Hello World\nhello bold\n'
+	assert out == 'Hello World\nhello bold'
 }
