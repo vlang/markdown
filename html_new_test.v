@@ -241,5 +241,5 @@ fn test_content_transformer() ! {
 		transformer: &TestCodeFormatter{}
 	}
 	out := render('```go\ntrue\n```', mut renderer)!
-	assert out == '<pre><code class="language-go"><span class="keyword">language: go >>> true</span>\n</code></pre>'
+	assert out == '<pre><code class="language-go"><span class="keyword">language: go >>> true\n</span></code></pre>'
 }

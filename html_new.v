@@ -116,7 +116,7 @@ pub mut:
 	transformer         HtmlTransformer = markdown.default_html_transformer
 mut:
 	parent_stack        Stack[ParentType]
-	extra_writer        strings.Builder = strings.new_builder(200)
+	content_writer        strings.Builder = strings.new_builder(200)
 	writer              strings.Builder = strings.new_builder(200)
 	image_nesting_level int
 }
@@ -148,17 +148,17 @@ fn (mut ht HtmlRenderer) render_md_attribute(key string, attr &C.MD_ATTRIBUTE, c
 	if attr == 0 || attr.text == 0 {
 		return
 	}
-	ht.extra_writer.write_string(cfg.prefix)
-	tos_attribute(attr, mut ht.extra_writer)
-	ht.extra_writer.write_string(cfg.suffix)
+	ht.content_writer.write_string(cfg.prefix)
+	tos_attribute(attr, mut ht.content_writer)
+	ht.content_writer.write_string(cfg.suffix)
 	transformed := if parent := ht.parent_stack.peek() {
-		ht.transformer.transform_attribute(parent, key, ht.extra_writer.str())
+		ht.transformer.transform_attribute(parent, key, ht.content_writer.str())
 	} else {
-		html.escape(ht.extra_writer.str())
+		html.escape(ht.content_writer.str())
 	}
 	if cfg.setting_key.len != 0 {
-		tos_attribute(attr, mut ht.extra_writer)
-		ht.transformer.config_set(cfg.setting_key, ht.extra_writer.str())
+		tos_attribute(attr, mut ht.content_writer)
+		ht.transformer.config_set(cfg.setting_key, ht.content_writer.str())
 	}
 	ht.render_opening_attribute(key, true)
 	ht.writer.write_string(transformed)
@@ -176,6 +176,19 @@ fn (mut ht HtmlRenderer) render_attribute(key string, value string) {
 		
 		ht.writer.write_string(transformed)
 		ht.render_closing_attribute()
+	}
+}
+
+fn (mut ht HtmlRenderer) render_content() {
+	if ht.content_writer.len == 0 {
+		return
+	}
+
+	if parent := ht.parent_stack.peek() {
+		transformed := ht.transformer.transform_content(parent, ht.content_writer.str())
+		ht.writer.write_string(transformed)
+	} else {
+		ht.writer.write_string(ht.content_writer.str())
 	}
 }
 
@@ -263,6 +276,7 @@ fn (mut ht HtmlRenderer) enter_block(typ MD_BLOCKTYPE, detail voidptr) ? {
 }
 
 fn (mut ht HtmlRenderer) leave_block(typ MD_BLOCKTYPE, detail voidptr) ? {
+	ht.render_content()
 	ht.parent_stack.pop() or {}
 	if typ in markdown.self_closing_block_types {
 		return
@@ -343,6 +357,7 @@ fn (mut ht HtmlRenderer) leave_span(typ MD_SPANTYPE, detail voidptr) ? {
 		return
 	}
 
+	ht.render_content()
 	ht.parent_stack.pop() or {}
 	tag_name := markdown.html_span_tag_names[typ] or { return }
 	ht.writer.write_byte(`<`)
@@ -371,12 +386,16 @@ fn (mut ht HtmlRenderer) text(typ MD_TEXTTYPE, text string) ? {
 			ht.writer.write_string(text)
 		}
 		else {
-			if parent := ht.parent_stack.peek() {
-				transformed := ht.transformer.transform_content(parent, text)
-				ht.writer.write_string(transformed)
-			} else {
-				ht.writer.write_string(html.escape(text, quote: false))
+			if ht.image_nesting_level == 0 {
+				if parent := ht.parent_stack.peek() {
+					// Special code for code blocks
+					if parent is MD_BLOCKTYPE && parent == .md_block_code {
+						ht.content_writer.write_string(text)
+						return
+					}
+				}
 			}
+			ht.writer.write_string(html.escape(text, quote: false))
 		}
 	}
 }
