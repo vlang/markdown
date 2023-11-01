@@ -1,5 +1,5 @@
 /*
- * MD4C: Markdown parser for C
+* MD4C: Markdown parser for C
  * (http://github.com/mity/md4c)
  *
  * Copyright (c) 2016-2019 Martin Mitáš
@@ -36,10 +36,10 @@ fn tos_attribute(attr &C.MD_ATTRIBUTE, mut wr strings.Builder) {
 		off := unsafe { attr.substr_offsets[i] }
 		size := unsafe { attr.substr_offsets[i + 1] - off }
 		text := unsafe { (attr.text + off).vstring_with_len(size) }
-	
+
 		match typ {
 			.md_text_null_char {
-				wr.write_string('&#0');
+				wr.write_string('&#0')
 			}
 			.md_text_entity {
 				wr.write_string(html.unescape(text, all: true))
@@ -48,12 +48,12 @@ fn tos_attribute(attr &C.MD_ATTRIBUTE, mut wr strings.Builder) {
 				wr.write_string(html.escape(text))
 			}
 		}
-	}	
+	}
 }
 
 pub struct HtmlRenderer {
 mut:
-	writer strings.Builder = strings.new_builder(200)
+	writer              strings.Builder = strings.new_builder(200)
 	image_nesting_level int
 }
 
@@ -89,26 +89,26 @@ fn (mut ht HtmlRenderer) render_attribute(key string, value string) {
 }
 
 const html_block_tag_names = {
-	MD_BLOCKTYPE.md_block_quote: 'blockquote',
-	.md_block_ul: 'ul',
-	.md_block_ol: 'ol',
-	.md_block_li: 'li',
-	.md_block_hr: 'hr',
-	.md_block_h: 'h',
-	.md_block_p: 'p',
-	.md_block_code: 'pre',
-	.md_block_table: 'table',
-	.md_block_thead: 'thead',
-	.md_block_tbody: 'tbody',
-	.md_block_tr: 'tr',
-	.md_block_th: 'th',
-	.md_block_td: 'td'
+	MD_BLOCKTYPE.md_block_quote: 'blockquote'
+	.md_block_ul:                'ul'
+	.md_block_ol:                'ol'
+	.md_block_li:                'li'
+	.md_block_hr:                'hr'
+	.md_block_h:                 'h'
+	.md_block_p:                 'p'
+	.md_block_code:              'pre'
+	.md_block_table:             'table'
+	.md_block_thead:             'thead'
+	.md_block_tbody:             'tbody'
+	.md_block_tr:                'tr'
+	.md_block_th:                'th'
+	.md_block_td:                'td'
 }
 
-const self_closing_block_types = [MD_BLOCKTYPE.md_block_hr] 
+const self_closing_block_types = [MD_BLOCKTYPE.md_block_hr]
 
 fn (mut ht HtmlRenderer) enter_block(typ MD_BLOCKTYPE, detail voidptr) ? {
-	tag_name := html_block_tag_names[typ] or { return }
+	tag_name := markdown.html_block_tag_names[typ] or { return }
 	ht.writer.write_byte(`<`)
 	ht.writer.write_string(tag_name)
 	match typ {
@@ -142,12 +142,12 @@ fn (mut ht HtmlRenderer) enter_block(typ MD_BLOCKTYPE, detail voidptr) ? {
 		}
 		else {}
 	}
-	if typ in self_closing_block_types {
+	if typ in markdown.self_closing_block_types {
 		ht.writer.write_byte(` `)
 		ht.writer.write_byte(`/`)
 	}
 	ht.writer.write_byte(`>`)
-	
+
 	// Extra HTML for li/code items
 	if typ == .md_block_code {
 		details := unsafe { &C.MD_BLOCK_CODE_DETAIL(detail) }
@@ -171,13 +171,13 @@ fn (mut ht HtmlRenderer) enter_block(typ MD_BLOCKTYPE, detail voidptr) ? {
 }
 
 fn (mut ht HtmlRenderer) leave_block(typ MD_BLOCKTYPE, detail voidptr) ? {
-	if typ in self_closing_block_types {
+	if typ in markdown.self_closing_block_types {
 		return
 	}
 	if typ == .md_block_code {
 		ht.writer.write_string('</code>')
 	}
-	tag_name := html_block_tag_names[typ] or { return }
+	tag_name := markdown.html_block_tag_names[typ] or { return }
 	ht.writer.write_byte(`<`)
 	ht.writer.write_byte(`/`)
 	ht.writer.write_string(tag_name)
@@ -189,16 +189,16 @@ fn (mut ht HtmlRenderer) leave_block(typ MD_BLOCKTYPE, detail voidptr) ? {
 }
 
 const html_span_tag_names = {
-	MD_SPANTYPE.md_span_em: 'em',
-	.md_span_strong: 'strong',
-	.md_span_a: 'a',
-	.md_span_img: 'img',
-	.md_span_code: 'code',
-	.md_span_del: 'del',
-	.md_span_latexmath: 'x-equation',
-	.md_span_latexmath_display: 'x-equation',
-	.md_span_wikilink: 'x-wikilink',
-	.md_span_u: 'u',
+	MD_SPANTYPE.md_span_em:     'em'
+	.md_span_strong:            'strong'
+	.md_span_a:                 'a'
+	.md_span_img:               'img'
+	.md_span_code:              'code'
+	.md_span_del:               'del'
+	.md_span_latexmath:         'x-equation'
+	.md_span_latexmath_display: 'x-equation'
+	.md_span_wikilink:          'x-wikilink'
+	.md_span_u:                 'u'
 }
 
 fn (mut ht HtmlRenderer) enter_span(typ MD_SPANTYPE, detail voidptr) ? {
@@ -206,11 +206,11 @@ fn (mut ht HtmlRenderer) enter_span(typ MD_SPANTYPE, detail voidptr) ? {
 		return
 	}
 
-	tag_name := html_span_tag_names[typ] or { return }
+	tag_name := markdown.html_span_tag_names[typ] or { return }
 
 	ht.writer.write_byte(`<`)
 	ht.writer.write_string(tag_name)
-	
+
 	match typ {
 		.md_span_a {
 			a_details := unsafe { &C.MD_SPAN_A_DETAIL(detail) }
@@ -247,8 +247,8 @@ fn (mut ht HtmlRenderer) leave_span(typ MD_SPANTYPE, detail voidptr) ? {
 		}
 		return
 	}
-	
-	tag_name := html_span_tag_names[typ] or { return }
+
+	tag_name := markdown.html_span_tag_names[typ] or { return }
 	ht.writer.write_byte(`<`)
 	ht.writer.write_byte(`/`)
 	ht.writer.write_string(tag_name)
@@ -258,7 +258,7 @@ fn (mut ht HtmlRenderer) leave_span(typ MD_SPANTYPE, detail voidptr) ? {
 fn (mut ht HtmlRenderer) text(typ MD_TEXTTYPE, text string) ? {
 	match typ {
 		.md_text_null_char {
-			ht.writer.write_string('&#0');
+			ht.writer.write_string('&#0')
 		}
 		.md_text_softbr {
 			if ht.image_nesting_level > 0 {
@@ -266,7 +266,7 @@ fn (mut ht HtmlRenderer) text(typ MD_TEXTTYPE, text string) ? {
 			}
 		}
 		.md_text_br {
-			ht.writer.write_string("<br />")
+			ht.writer.write_string('<br />')
 		}
 		.md_text_entity {
 			ht.writer.write_string(html.unescape(text, all: true))

@@ -53,6 +53,7 @@ fn test_render_blockquote() {
 }
 
 const item_checked = '<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled checked>'
+
 const item_unchecked = '<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled>'
 
 fn test_render_ul() {
@@ -67,7 +68,7 @@ fn test_render_ul_checkbox() {
 - [x] test
 - [X] abcd
 - [ ] defg
-    '.trim_space()) == '<ul>${item_checked}test</li>${item_checked}abcd</li>${item_unchecked}defg</li></ul>'
+    '.trim_space()) == '<ul>${markdown.item_checked}test</li>${markdown.item_checked}abcd</li>${markdown.item_unchecked}defg</li></ul>'
 }
 
 fn test_render_ul_mixed() {
@@ -75,7 +76,7 @@ fn test_render_ul_mixed() {
 - [x] test
 - abcd
 - [ ] defg
-    '.trim_space()) == '<ul>${item_checked}test</li><li>abcd</li>${item_unchecked}defg</li></ul>'
+    '.trim_space()) == '<ul>${markdown.item_checked}test</li><li>abcd</li>${markdown.item_unchecked}defg</li></ul>'
 }
 
 fn test_render_ol() {
@@ -97,7 +98,7 @@ fn test_render_ol_checkbox() {
 1. [x] test
 2. [X] abcd
 3. [ ] defg
-    '.trim_space()) == '<ol>${item_checked}test</li>${item_checked}abcd</li>${item_unchecked}defg</li></ol>'
+    '.trim_space()) == '<ol>${markdown.item_checked}test</li>${markdown.item_checked}abcd</li>${markdown.item_unchecked}defg</li></ol>'
 }
 
 fn test_render_ol_mixed() {
@@ -105,7 +106,7 @@ fn test_render_ol_mixed() {
 1. [x] test
 2. abcd
 3. [ ] defg
-    '.trim_space()) == '<ol>${item_checked}test</li><li>abcd</li>${item_unchecked}defg</li></ol>'
+    '.trim_space()) == '<ol>${markdown.item_checked}test</li><li>abcd</li>${markdown.item_unchecked}defg</li></ol>'
 }
 
 fn test_render_ul_ol_mixed() {
@@ -121,7 +122,7 @@ fn test_render_ul_ol_mixed() {
    1. Ordered 1
    2. Ordered 2
     '.trim_space()) == [
-		'<ol><li>Things to do<ul>${item_checked}Task 1</li>${item_unchecked}Task 2</li></ul></li>',
+		'<ol><li>Things to do<ul>${markdown.item_checked}Task 1</li>${markdown.item_unchecked}Task 2</li></ul></li>',
 		'<li>Notes<ul><li>Note 1</li><li>Note 2</li></ul></li></ol>',
 		'<ul><li>Hey<ol><li>Ordered 1</li><li>Ordered 2</li></ol></li></ul>',
 	].join('')
@@ -195,5 +196,5 @@ fn test_render_raw_html() {
 }
 
 fn test_render_entity() {
-	assert to_html_new('what&apos;s up') == '<p>what\'s up</p>'
+	assert to_html_new('what&apos;s up') == "<p>what's up</p>"
 }
