@@ -121,6 +121,10 @@ mut:
 	image_nesting_level int
 }
 
+fn (mut ht HtmlRenderer) str() string {
+	return ht.writer.str()
+}
+
 fn (mut ht HtmlRenderer) render_opening_attribute(key string, with_str_opening bool) {
 	ht.writer.write_byte(` `)
 	ht.writer.write_string(key)
@@ -383,6 +387,6 @@ fn (mut ht HtmlRenderer) debug_log(msg string) {
 
 pub fn to_html_new(input string) string {
 	mut renderer := HtmlRenderer{}
-	render(input, mut renderer) or { return '' }
-	return renderer.writer.str().trim_space()
+	out := render(input, mut renderer) or { '' }
+	return out
 }

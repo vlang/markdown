@@ -210,8 +210,8 @@ fn test_attribute_transformer() ! {
 			return default_html_transformer.transform_attribute(parent, name, value)
 		})
 	}
-	render('[should be google](.)', mut renderer)!
-	assert renderer.writer.str().trim_space() == '<p><a href="https://google.com">should be google</a></p>'
+	out := render('[should be google](.)', mut renderer)!
+	assert out == '<p><a href="https://google.com">should be google</a></p>'
 }
 
 struct TestCodeFormatter {
@@ -240,6 +240,6 @@ fn test_content_transformer() ! {
 	mut renderer := HtmlRenderer{
 		transformer: &TestCodeFormatter{}
 	}
-	render('```go\ntrue\n```', mut renderer)!
-	assert renderer.writer.str().trim_space() == '<pre><code class="language-go"><span class="keyword">language: go >>> true</span>\n</code></pre>'
+	out := render('```go\ntrue\n```', mut renderer)!
+	assert out == '<pre><code class="language-go"><span class="keyword">language: go >>> true</span>\n</code></pre>'
 }

@@ -34,6 +34,10 @@ mut:
 	writer strings.Builder = strings.new_builder(200)
 }
 
+fn (mut pt PlaintextRenderer) str() string {
+	return pt.writer.str()
+}
+
 fn (mut pt PlaintextRenderer) enter_block(typ MD_BLOCKTYPE, detail voidptr) ? {
 	// TODO Remove, functions can't have two args with name `_`
 	_ = typ
@@ -77,6 +81,6 @@ fn (mut pt PlaintextRenderer) debug_log(msg string) {
 
 pub fn to_plain(input string) string {
 	mut pt_renderer := PlaintextRenderer{}
-	render(input, mut pt_renderer) or { return '' }
-	return pt_renderer.writer.str().trim_space()
+	out := render(input, mut pt_renderer) or { '' }
+	return out
 }
