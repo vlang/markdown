@@ -1,9 +1,9 @@
 /*
-* MD4C: Markdown parser for C
+ * MD4C: Markdown parser for C
  * (http://github.com/mity/md4c)
  *
  * Copyright (c) 2016-2019 Martin Mitáš
- * Copyright (c) 2020 Ned Palacios (V bindings)
+ * Copyright (c) 2020/2023 Ned Palacios (V bindings, HTML Renderer)
  * Copyright (c) 2020-2021 The V Programming Language
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -29,27 +29,27 @@ module markdown
 
 fn test_render() {
 	text := '# Hello World\nhello **bold**'
-	out := to_html_new(text)
+	out := to_html_experimental(text)
 	assert out == '<h1>Hello World</h1><p>hello <strong>bold</strong></p>'
 }
 
 fn test_formatting() {
-	assert to_html_new('*italic*') == '<p><em>italic</em></p>'
-	assert to_html_new('_italic_') == '<p><em>italic</em></p>'
-	assert to_html_new('**bold**') == '<p><strong>bold</strong></p>'
-	assert to_html_new('__bold__') == '<p><strong>bold</strong></p>'
-	assert to_html_new('***italic bold***') == '<p><em><strong>italic bold</strong></em></p>'
-	assert to_html_new('___italic bold___') == '<p><em><strong>italic bold</strong></em></p>'
-	assert to_html_new('~strikethrough~') == '<p><del>strikethrough</del></p>'
-	assert to_html_new('~~strikethrough with two tildes~~') == '<p><del>strikethrough with two tildes</del></p>'
-	assert to_html_new('~_**mixed**_~') == '<p><del><em><strong>mixed</strong></em></del></p>'
-	assert to_html_new('`inline code`') == '<p><code>inline code</code></p>'
+	assert to_html_experimental('*italic*') == '<p><em>italic</em></p>'
+	assert to_html_experimental('_italic_') == '<p><em>italic</em></p>'
+	assert to_html_experimental('**bold**') == '<p><strong>bold</strong></p>'
+	assert to_html_experimental('__bold__') == '<p><strong>bold</strong></p>'
+	assert to_html_experimental('***italic bold***') == '<p><em><strong>italic bold</strong></em></p>'
+	assert to_html_experimental('___italic bold___') == '<p><em><strong>italic bold</strong></em></p>'
+	assert to_html_experimental('~strikethrough~') == '<p><del>strikethrough</del></p>'
+	assert to_html_experimental('~~strikethrough with two tildes~~') == '<p><del>strikethrough with two tildes</del></p>'
+	assert to_html_experimental('~_**mixed**_~') == '<p><del><em><strong>mixed</strong></em></del></p>'
+	assert to_html_experimental('`inline code`') == '<p><code>inline code</code></p>'
 
 	// TODO: test cases for latexmath and wikilink
 }
 
 fn test_render_blockquote() {
-	assert to_html_new('> hello world') == '<blockquote><p>hello world</p></blockquote>'
+	assert to_html_experimental('> hello world') == '<blockquote><p>hello world</p></blockquote>'
 }
 
 const item_checked = '<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled checked>'
@@ -57,14 +57,14 @@ const item_checked = '<li class="task-list-item"><input type="checkbox" class="t
 const item_unchecked = '<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled>'
 
 fn test_render_ul() {
-	assert to_html_new('
+	assert to_html_experimental('
 - test
 - abcd
     '.trim_space()) == '<ul><li>test</li><li>abcd</li></ul>'
 }
 
 fn test_render_ul_checkbox() {
-	assert to_html_new('
+	assert to_html_experimental('
 - [x] test
 - [X] abcd
 - [ ] defg
@@ -72,7 +72,7 @@ fn test_render_ul_checkbox() {
 }
 
 fn test_render_ul_mixed() {
-	assert to_html_new('
+	assert to_html_experimental('
 - [x] test
 - abcd
 - [ ] defg
@@ -80,21 +80,21 @@ fn test_render_ul_mixed() {
 }
 
 fn test_render_ol() {
-	assert to_html_new('
+	assert to_html_experimental('
 1. test
 2. abcd
     '.trim_space()) == '<ol><li>test</li><li>abcd</li></ol>'
 }
 
 fn test_render_ol_diff_start() {
-	assert to_html_new('
+	assert to_html_experimental('
 4. test
 7. abcd
     '.trim_space()) == '<ol start="4"><li>test</li><li>abcd</li></ol>'
 }
 
 fn test_render_ol_checkbox() {
-	assert to_html_new('
+	assert to_html_experimental('
 1. [x] test
 2. [X] abcd
 3. [ ] defg
@@ -102,7 +102,7 @@ fn test_render_ol_checkbox() {
 }
 
 fn test_render_ol_mixed() {
-	assert to_html_new('
+	assert to_html_experimental('
 1. [x] test
 2. abcd
 3. [ ] defg
@@ -110,7 +110,7 @@ fn test_render_ol_mixed() {
 }
 
 fn test_render_ul_ol_mixed() {
-	assert to_html_new('
+	assert to_html_experimental('
 1. Things to do
    - [x] Task 1
    - [ ] Task 2
@@ -129,38 +129,38 @@ fn test_render_ul_ol_mixed() {
 }
 
 fn test_render_hr() {
-	assert to_html_new('---') == '<hr />'
-	assert to_html_new('***') == '<hr />'
+	assert to_html_experimental('---') == '<hr />'
+	assert to_html_experimental('***') == '<hr />'
 }
 
 fn test_render_heading() {
-	assert to_html_new('# a') == '<h1>a</h1>'
-	assert to_html_new('## b') == '<h2>b</h2>'
-	assert to_html_new('### c') == '<h3>c</h3>'
-	assert to_html_new('#### d') == '<h4>d</h4>'
-	assert to_html_new('##### e') == '<h5>e</h5>'
-	assert to_html_new('###### f') == '<h6>f</h6>'
+	assert to_html_experimental('# a') == '<h1>a</h1>'
+	assert to_html_experimental('## b') == '<h2>b</h2>'
+	assert to_html_experimental('### c') == '<h3>c</h3>'
+	assert to_html_experimental('#### d') == '<h4>d</h4>'
+	assert to_html_experimental('##### e') == '<h5>e</h5>'
+	assert to_html_experimental('###### f') == '<h6>f</h6>'
 }
 
 fn test_render_heading_error() {
-	assert to_html_new('####### err') == '<p>####### err</p>'
+	assert to_html_experimental('####### err') == '<p>####### err</p>'
 }
 
 fn test_render_p() {
-	assert to_html_new('hello') == '<p>hello</p>'
+	assert to_html_experimental('hello') == '<p>hello</p>'
 }
 
 fn test_render_code() {
-	assert to_html_new('```\nfenced\n```') == '<pre><code>fenced\n</code></pre>'
-	assert to_html_new('\tindented') == '<pre><code>indented\n</code></pre>'
+	assert to_html_experimental('```\nfenced\n```') == '<pre><code>fenced\n</code></pre>'
+	assert to_html_experimental('\tindented') == '<pre><code>indented\n</code></pre>'
 }
 
 fn test_render_code_with_lang() {
-	assert to_html_new('```v\nprint("hello")\n```') == '<pre><code class="language-v">print("hello")\n</code></pre>'
+	assert to_html_experimental('```v\nprint("hello")\n```') == '<pre><code class="language-v">print("hello")\n</code></pre>'
 }
 
 fn test_render_table() {
-	assert to_html_new('
+	assert to_html_experimental('
 |Column 1| Column 2 |
 |--------|---|
 |Item 1| Item 2 |
@@ -168,35 +168,35 @@ fn test_render_table() {
 }
 
 fn test_img() {
-	assert to_html_new('![pic](test.png)') == '<p><img src="test.png" alt="pic" /></p>'
+	assert to_html_experimental('![pic](test.png)') == '<p><img src="test.png" alt="pic" /></p>'
 }
 
 fn test_img_with_title() {
-	assert to_html_new('![](test.png "img title")') == '<p><img src="test.png" alt="" title="img title" /></p>'
+	assert to_html_experimental('![](test.png "img title")') == '<p><img src="test.png" alt="" title="img title" /></p>'
 }
 
 fn test_img_alt_formatting() {
-	assert to_html_new('![**emphasize**](test.png)') == '<p><img src="test.png" alt="emphasize" /></p>'
+	assert to_html_experimental('![**emphasize**](test.png)') == '<p><img src="test.png" alt="emphasize" /></p>'
 }
 
 fn test_a() {
-	assert to_html_new('[this is a link](https://example.com)') == '<p><a href="https://example.com">this is a link</a></p>'
+	assert to_html_experimental('[this is a link](https://example.com)') == '<p><a href="https://example.com">this is a link</a></p>'
 }
 
 fn test_a_empty_text() {
-	assert to_html_new('[](https://example.com)') == '<p><a href="https://example.com"></a></p>'
+	assert to_html_experimental('[](https://example.com)') == '<p><a href="https://example.com"></a></p>'
 }
 
 fn test_a_empty_link() {
-	assert to_html_new('[link with no href]()') == '<p><a>link with no href</a></p>'
+	assert to_html_experimental('[link with no href]()') == '<p><a>link with no href</a></p>'
 }
 
 fn test_render_raw_html() {
-	assert to_html_new('<h1>hello world</h1>') == '<h1>hello world</h1>'
+	assert to_html_experimental('<h1>hello world</h1>') == '<h1>hello world</h1>'
 }
 
 fn test_render_entity() {
-	assert to_html_new('what&apos;s up') == "<p>what's up</p>"
+	assert to_html_experimental('what&apos;s up') == "<p>what's up</p>"
 }
 
 fn test_attribute_transformer() ! {

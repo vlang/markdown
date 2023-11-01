@@ -3,7 +3,7 @@
  * (http://github.com/mity/md4c)
  *
  * Copyright (c) 2016-2019 Martin Mitáš
- * Copyright (c) 2020/2023 Ned Palacios (V bindings / HTML Renderer)
+ * Copyright (c) 2020/2023 Ned Palacios (V bindings, HTML Renderer)
  * Copyright (c) 2020-2023 The V Programming Language
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -404,7 +404,7 @@ fn (mut ht HtmlRenderer) debug_log(msg string) {
 	unsafe { msg.free() }
 }
 
-pub fn to_html_new(input string) string {
+pub fn to_html_experimental(input string) string {
 	mut renderer := HtmlRenderer{}
 	out := render(input, mut renderer) or { '' }
 	return out
