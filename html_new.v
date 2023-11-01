@@ -27,100 +27,265 @@
 
 module markdown
 
+import encoding.html
 import strings
+
+fn tos_attribute(attr &C.MD_ATTRIBUTE, mut wr strings.Builder) {
+	for i := 0; unsafe { attr.substr_offsets[i] } < attr.size; i++ {
+		typ := unsafe { MD_TEXTTYPE(attr.substr_types[i]) }
+		off := unsafe { attr.substr_offsets[i] }
+		size := unsafe { attr.substr_offsets[i + 1] - off }
+		text := unsafe { (attr.text + off).vstring_with_len(size) }
+	
+		match typ {
+			.md_text_null_char {
+				wr.write_string('&#0');
+			}
+			.md_text_entity {
+				wr.write_string(html.unescape(text, all: true))
+			}
+			else {
+				wr.write_string(html.escape(text))
+			}
+		}
+	}	
+}
 
 pub struct HtmlRenderer {
 mut:
 	writer strings.Builder = strings.new_builder(200)
+	image_nesting_level int
 }
 
-fn (mut pt HtmlRenderer) enter_block(typ MD_BLOCKTYPE, detail voidptr) ? {
-	de
+fn (mut ht HtmlRenderer) render_opening_attribute(key string, with_str_opening bool) {
+	ht.writer.write_byte(` `)
+	ht.writer.write_string(key)
+	if with_str_opening {
+		ht.writer.write_string('="')
+	}
+}
 
+fn (mut ht HtmlRenderer) render_closing_attribute() {
+	ht.writer.write_byte(`"`)
+}
+
+fn (mut ht HtmlRenderer) render_md_attribute(key string, attr &C.MD_ATTRIBUTE, prefix string, suffix string) {
+	if attr == 0 || attr.text == 0 {
+		return
+	}
+	ht.render_opening_attribute(key, true)
+	ht.writer.write_string(prefix)
+	tos_attribute(attr, mut ht.writer)
+	ht.writer.write_string(suffix)
+	ht.render_closing_attribute()
+}
+
+fn (mut ht HtmlRenderer) render_attribute(key string, value string) {
+	ht.render_opening_attribute(key, value.len != 0)
+	if value.len != 0 {
+		ht.writer.write_string(html.escape(value))
+		ht.render_closing_attribute()
+	}
+}
+
+const html_block_tag_names = {
+	MD_BLOCKTYPE.md_block_quote: 'blockquote',
+	.md_block_ul: 'ul',
+	.md_block_ol: 'ol',
+	.md_block_li: 'li',
+	.md_block_hr: 'hr',
+	.md_block_h: 'h',
+	.md_block_p: 'p',
+	.md_block_code: 'pre',
+	.md_block_table: 'table',
+	.md_block_thead: 'thead',
+	.md_block_tbody: 'tbody',
+	.md_block_tr: 'tr',
+	.md_block_th: 'th',
+	.md_block_td: 'td'
+}
+
+const self_closing_block_types = [MD_BLOCKTYPE.md_block_hr] 
+
+fn (mut ht HtmlRenderer) enter_block(typ MD_BLOCKTYPE, detail voidptr) ? {
+	tag_name := html_block_tag_names[typ] or { return }
+	ht.writer.write_byte(`<`)
+	ht.writer.write_string(tag_name)
 	match typ {
-		.md_block_doc {}
-		.md_block_quote {
-			pt.writer.write_string("<blockquote>")
-		}
-		.md_block_ul {
-			pt.writer.write_string("<ul>")
+		.md_block_h {
+			level := unsafe { &C.MD_BLOCK_H_DETAIL(detail) }.level
+			ht.writer.write_string('${level}')
 		}
 		.md_block_ol {
-			pt.writer.write_string("<ol>")
+			details := unsafe { &C.MD_BLOCK_OL_DETAIL(detail) }
+			if details.start > 1 {
+				ht.render_attribute('start', '${details.start}')
+			}
 		}
 		.md_block_li {
-			pt.writer.write_string("<li>")
+			details := unsafe { &C.MD_BLOCK_LI_DETAIL(detail) }
+			if details.is_task {
+				ht.render_attribute('class', 'task-list-item')
+			}
 		}
-		.md_block_hr {
-			pt.writer.write_string("<hr />")
+		.md_block_th, .md_block_td {
+			details := unsafe { &C.MD_BLOCK_TD_DETAIL(detail) }
+			align := match details.align {
+				.md_align_left { 'left' }
+				.md_align_center { 'center' }
+				.md_align_right { 'right' }
+				else { '' }
+			}
+			if align.len != 0 {
+				ht.render_attribute('align', align)
+			}
 		}
-		.md_block_h {
-			pt.writer.write_string
+		else {}
+	}
+	if typ in self_closing_block_types {
+		ht.writer.write_byte(` `)
+		ht.writer.write_byte(`/`)
+	}
+	ht.writer.write_byte(`>`)
+	
+	// Extra HTML for li/code items
+	if typ == .md_block_code {
+		details := unsafe { &C.MD_BLOCK_CODE_DETAIL(detail) }
+		ht.writer.write_string('<code')
+		ht.render_md_attribute('class', details.lang, 'language-', '')
+		ht.writer.write_byte(`>`)
+	} else if typ == .md_block_li {
+		details := unsafe { &C.MD_BLOCK_LI_DETAIL(detail) }
+		if !details.is_task {
+			return
 		}
-		.md_block_code {}
-		.md_block_html {}
-		.md_block_p {}
-		.md_block_table {}
-		.md_block_thead {}
-		.md_block_tbody {}
-		.md_block_tr {}
-		.md_block_th {}
-		.md_block_td {}
+		ht.writer.write_string('<input')
+		ht.render_attribute('type', 'checkbox')
+		ht.render_attribute('class', 'task-list-item-checkbox')
+		ht.render_attribute('disabled', '')
+		if details.task_mark == `x` || details.task_mark == `X` {
+			ht.render_attribute('checked', '')
+		}
+		ht.writer.write_byte(`>`)
 	}
 }
 
-fn (mut pt HtmlRenderer) leave_block(typ MD_BLOCKTYPE, _ voidptr) ? {
-	match typ {
-		.md_block_doc {}
-		.md_block_quote {}
-		.md_block_ul {}
-		.md_block_ol {}
-		.md_block_li {}
-		.md_block_hr {}
-		.md_block_h {}
-		.md_block_code {}
-		.md_block_html {}
-		.md_block_p {}
-		.md_block_table {}
-		.md_block_thead {}
-		.md_block_tbody {}
-		.md_block_tr {}
-		.md_block_th {}
-		.md_block_td {}
+fn (mut ht HtmlRenderer) leave_block(typ MD_BLOCKTYPE, detail voidptr) ? {
+	if typ in self_closing_block_types {
+		return
 	}
+	if typ == .md_block_code {
+		ht.writer.write_string('</code>')
+	}
+	tag_name := html_block_tag_names[typ] or { return }
+	ht.writer.write_byte(`<`)
+	ht.writer.write_byte(`/`)
+	ht.writer.write_string(tag_name)
+	if typ == .md_block_h {
+		level := unsafe { &C.MD_BLOCK_H_DETAIL(detail) }.level
+		ht.writer.write_string('${level}')
+	}
+	ht.writer.write_byte(`>`)
 }
 
-fn (mut pt HtmlRenderer) enter_span(typ MD_SPANTYPE, detail voidptr) ? {
-	// TODO Remove, functions can't have two args with name `_`
-	_ = typ
-	_ = detail
+const html_span_tag_names = {
+	MD_SPANTYPE.md_span_em: 'em',
+	.md_span_strong: 'strong',
+	.md_span_a: 'a',
+	.md_span_img: 'img',
+	.md_span_code: 'code',
+	.md_span_del: 'del',
+	.md_span_latexmath: 'x-equation',
+	.md_span_latexmath_display: 'x-equation',
+	.md_span_wikilink: 'x-wikilink',
+	.md_span_u: 'u',
 }
 
-fn (mut pt HtmlRenderer) leave_span(typ MD_SPANTYPE, detail voidptr) ? {
-	// TODO Remove, functions can't have two args with name `_`
-	_ = typ
-	_ = detail
-}
+fn (mut ht HtmlRenderer) enter_span(typ MD_SPANTYPE, detail voidptr) ? {
+	if ht.image_nesting_level > 0 {
+		return
+	}
 
-fn (mut pt HtmlRenderer) text(typ MD_TEXTTYPE, text string) ? {
+	tag_name := html_span_tag_names[typ] or { return }
+
+	ht.writer.write_byte(`<`)
+	ht.writer.write_string(tag_name)
+	
 	match typ {
-		.md_text_null_char {}
-		.md_text_html {}
-		.md_text_br, .md_text_softbr {
-			pt.writer.write_u8(`\n`)
+		.md_span_a {
+			a_details := unsafe { &C.MD_SPAN_A_DETAIL(detail) }
+			ht.render_md_attribute('href', a_details.href, '', '')
+			ht.render_md_attribute('title', a_details.title, '', '')
+		}
+		.md_span_img {
+			img_details := unsafe { &C.MD_SPAN_IMG_DETAIL(detail) }
+			ht.render_md_attribute('src', img_details.src, '', '')
+			ht.render_opening_attribute('alt', true)
+			ht.image_nesting_level++
+			return
+		}
+		.md_span_latexmath_display {
+			ht.render_attribute('type', 'display')
+		}
+		.md_span_wikilink {
+			wikilink_details := unsafe { &C.MD_SPAN_WIKILINK_DETAIL(detail) }
+			ht.render_md_attribute('data-target', wikilink_details.target, '', '')
+		}
+		else {}
+	}
+	ht.writer.write_byte(`>`)
+}
+
+fn (mut ht HtmlRenderer) leave_span(typ MD_SPANTYPE, detail voidptr) ? {
+	if ht.image_nesting_level > 0 {
+		if ht.image_nesting_level == 1 && typ == .md_span_img {
+			ht.render_closing_attribute()
+			img_details := unsafe { &C.MD_SPAN_IMG_DETAIL(detail) }
+			ht.render_md_attribute('title', img_details.title, '', '')
+			ht.writer.write_string(' />')
+			ht.image_nesting_level--
+		}
+		return
+	}
+	
+	tag_name := html_span_tag_names[typ] or { return }
+	ht.writer.write_byte(`<`)
+	ht.writer.write_byte(`/`)
+	ht.writer.write_string(tag_name)
+	ht.writer.write_byte(`>`)
+}
+
+fn (mut ht HtmlRenderer) text(typ MD_TEXTTYPE, text string) ? {
+	match typ {
+		.md_text_null_char {
+			ht.writer.write_string('&#0');
+		}
+		.md_text_softbr {
+			if ht.image_nesting_level > 0 {
+				ht.writer.write_byte(` `)
+			}
+		}
+		.md_text_br {
+			ht.writer.write_string("<br />")
+		}
+		.md_text_entity {
+			ht.writer.write_string(html.unescape(text, all: true))
+		}
+		.md_text_html {
+			ht.writer.write_string(text)
 		}
 		else {
-			pt.writer.write_string(text)
+			ht.writer.write_string(html.escape(text, quote: false))
 		}
 	}
 }
 
-fn (mut pt HtmlRenderer) debug_log(msg string) {
+fn (mut ht HtmlRenderer) debug_log(msg string) {
 	unsafe { msg.free() }
 }
 
 pub fn to_html_new(input string) string {
-	mut pt_renderer := PlaintextRenderer{}
-	render(input, mut pt_renderer) or { return '' }
-	return pt_renderer.writer.str().trim_space()
+	mut renderer := HtmlRenderer{}
+	render(input, mut renderer) or { return '' }
+	return renderer.writer.str().trim_space()
 }
