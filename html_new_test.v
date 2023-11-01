@@ -1,5 +1,5 @@
 /*
- * MD4C: Markdown parser for C
+* MD4C: Markdown parser for C
  * (http://github.com/mity/md4c)
  *
  * Copyright (c) 2016-2019 Martin Mitáš
@@ -197,4 +197,49 @@ fn test_render_raw_html() {
 
 fn test_render_entity() {
 	assert to_html_new('what&apos;s up') == "<p>what's up</p>"
+}
+
+fn test_attribute_transformer() ! {
+	mut renderer := HtmlRenderer{
+		transformer: &AttrTransformerFn(fn (parent ParentType, name string, value string) string {
+			if parent is MD_SPANTYPE && parent == .md_span_a {
+				if name == 'href' && value == '.' {
+					return 'https://google.com'
+				}
+			}
+			return default_html_transformer.transform_attribute(parent, name, value)
+		})
+	}
+	render('[should be google](.)', mut renderer)!
+	assert renderer.writer.str().trim_space() == '<p><a href="https://google.com">should be google</a></p>'
+}
+
+struct TestCodeFormatter {
+mut:
+	language string
+}
+
+fn (f &TestCodeFormatter) transform_attribute(parent ParentType, name string, value string) string {
+	return default_html_transformer.transform_attribute(parent, name, value)
+}
+
+fn (f &TestCodeFormatter) transform_content(parent ParentType, text string) string {
+	if text.trim_space().len != 0 && parent is MD_BLOCKTYPE && parent == .md_block_code {
+		return '<span class="keyword">language: ${f.language} >>> ${text}</span>'
+	}
+	return default_html_transformer.transform_content(parent, text)
+}
+
+fn (mut f TestCodeFormatter) config_set(key string, val string) {
+	if key == 'code_language' {
+		f.language = val
+	}
+}
+
+fn test_content_transformer() ! {
+	mut renderer := HtmlRenderer{
+		transformer: &TestCodeFormatter{}
+	}
+	render('```go\ntrue\n```', mut renderer)!
+	assert renderer.writer.str().trim_space() == '<pre><code class="language-go"><span class="keyword">language: go >>> true</span>\n</code></pre>'
 }

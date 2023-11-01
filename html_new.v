@@ -3,8 +3,8 @@
  * (http://github.com/mity/md4c)
  *
  * Copyright (c) 2016-2019 Martin Mitáš
- * Copyright (c) 2020 Ned Palacios (V bindings)
- * Copyright (c) 2020-2021 The V Programming Language
+ * Copyright (c) 2020/2023 Ned Palacios (V bindings / HTML Renderer)
+ * Copyright (c) 2020-2023 The V Programming Language
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,62 @@ module markdown
 
 import encoding.html
 import strings
+import datatypes { Stack }
+
+pub type ParentType = MD_BLOCKTYPE | MD_SPANTYPE
+
+// HtmlTransformer transforms converted HTML elements (limited 
+// to attribute and content for now) from markdown before incorporated 
+// into the final output. 
+// 
+// When implementing an HtmlTransformer, escaping the content is up 
+// to you. However, it is best to wrap the values you don't need with 
+// `markdown.default_html_transformer.transform_{attribute|content}`
+pub interface HtmlTransformer {
+	transform_attribute(parent ParentType, name string, value string) string
+	transform_content(parent ParentType, text string) string
+mut:
+	config_set(key string, value string)
+}
+
+pub struct DefaultHtmlTransformer {}
+
+pub fn (t &DefaultHtmlTransformer) transform_attribute(parent ParentType, name string, value string) string {
+	return html.escape(value)
+}
+
+pub fn (t &DefaultHtmlTransformer) transform_content(parent ParentType, text string) string {
+	return html.escape(text, quote: false)
+}
+
+pub fn (mut t DefaultHtmlTransformer) config_set(key string, val string) {}
+
+pub const default_html_transformer = &DefaultHtmlTransformer{}
+
+pub type AttrTransformerFn = fn (ParentType, string, string) string
+
+pub fn (t AttrTransformerFn) transform_attribute(parent ParentType, name string, value string) string {
+	val := t(parent, name, value)
+	return val
+}
+
+pub fn (t AttrTransformerFn) transform_content(parent ParentType, text string) string {
+	return default_html_transformer.transform_content(parent, text)
+}
+
+pub fn (mut t AttrTransformerFn) config_set(key string, val string) {}
+
+pub type ContentTransformerFn = fn (ParentType, string) string
+
+pub fn (t ContentTransformerFn) transform_attribute(parent ParentType, name string, value string) string {
+	return default_html_transformer.transform_attribute(parent, name, value)
+}
+
+pub fn (t ContentTransformerFn) transform_content(parent ParentType, text string) string {
+	return t(parent, text)
+}
+
+pub fn (mut t ContentTransformerFn) config_set(key string, val string) {}
 
 fn tos_attribute(attr &C.MD_ATTRIBUTE, mut wr strings.Builder) {
 	for i := 0; unsafe { attr.substr_offsets[i] } < attr.size; i++ {
@@ -39,10 +95,14 @@ fn tos_attribute(attr &C.MD_ATTRIBUTE, mut wr strings.Builder) {
 
 		match typ {
 			.md_text_null_char {
-				wr.write_string('&#0')
+				wr.write_string(html.unescape('&#0'))
 			}
 			.md_text_entity {
-				wr.write_string(html.unescape(text, all: true))
+				if text == '&lt;' || text == '&gt;' {
+					wr.write_string(text)
+				} else {
+					wr.write_string(html.unescape(text, all: true))
+				}
 			}
 			else {
 				wr.write_string(html.escape(text))
@@ -52,7 +112,11 @@ fn tos_attribute(attr &C.MD_ATTRIBUTE, mut wr strings.Builder) {
 }
 
 pub struct HtmlRenderer {
+pub mut:
+	transformer         HtmlTransformer = markdown.default_html_transformer
 mut:
+	parent_stack        Stack[ParentType]
+	extra_writer        strings.Builder = strings.new_builder(200)
 	writer              strings.Builder = strings.new_builder(200)
 	image_nesting_level int
 }
@@ -69,21 +133,44 @@ fn (mut ht HtmlRenderer) render_closing_attribute() {
 	ht.writer.write_byte(`"`)
 }
 
-fn (mut ht HtmlRenderer) render_md_attribute(key string, attr &C.MD_ATTRIBUTE, prefix string, suffix string) {
+[params]
+struct MdAttributeConfig {
+	prefix string
+	suffix string
+	setting_key string
+}
+
+fn (mut ht HtmlRenderer) render_md_attribute(key string, attr &C.MD_ATTRIBUTE, cfg MdAttributeConfig) {
 	if attr == 0 || attr.text == 0 {
 		return
 	}
+	ht.extra_writer.write_string(cfg.prefix)
+	tos_attribute(attr, mut ht.extra_writer)
+	ht.extra_writer.write_string(cfg.suffix)
+	transformed := if parent := ht.parent_stack.peek() {
+		ht.transformer.transform_attribute(parent, key, ht.extra_writer.str())
+	} else {
+		html.escape(ht.extra_writer.str())
+	}
+	if cfg.setting_key.len != 0 {
+		tos_attribute(attr, mut ht.extra_writer)
+		ht.transformer.config_set(cfg.setting_key, ht.extra_writer.str())
+	}
 	ht.render_opening_attribute(key, true)
-	ht.writer.write_string(prefix)
-	tos_attribute(attr, mut ht.writer)
-	ht.writer.write_string(suffix)
+	ht.writer.write_string(transformed)
 	ht.render_closing_attribute()
 }
 
 fn (mut ht HtmlRenderer) render_attribute(key string, value string) {
 	ht.render_opening_attribute(key, value.len != 0)
 	if value.len != 0 {
-		ht.writer.write_string(html.escape(value))
+		transformed := if parent := ht.parent_stack.peek() {
+			ht.transformer.transform_attribute(parent, key, value)
+		} else {
+			value
+		}
+		
+		ht.writer.write_string(transformed)
 		ht.render_closing_attribute()
 	}
 }
@@ -108,6 +195,7 @@ const html_block_tag_names = {
 const self_closing_block_types = [MD_BLOCKTYPE.md_block_hr]
 
 fn (mut ht HtmlRenderer) enter_block(typ MD_BLOCKTYPE, detail voidptr) ? {
+	ht.parent_stack.push(ParentType(typ))
 	tag_name := markdown.html_block_tag_names[typ] or { return }
 	ht.writer.write_byte(`<`)
 	ht.writer.write_string(tag_name)
@@ -152,7 +240,7 @@ fn (mut ht HtmlRenderer) enter_block(typ MD_BLOCKTYPE, detail voidptr) ? {
 	if typ == .md_block_code {
 		details := unsafe { &C.MD_BLOCK_CODE_DETAIL(detail) }
 		ht.writer.write_string('<code')
-		ht.render_md_attribute('class', details.lang, 'language-', '')
+		ht.render_md_attribute('class', details.lang, prefix: 'language-', setting_key: 'code_language')
 		ht.writer.write_byte(`>`)
 	} else if typ == .md_block_li {
 		details := unsafe { &C.MD_BLOCK_LI_DETAIL(detail) }
@@ -171,6 +259,7 @@ fn (mut ht HtmlRenderer) enter_block(typ MD_BLOCKTYPE, detail voidptr) ? {
 }
 
 fn (mut ht HtmlRenderer) leave_block(typ MD_BLOCKTYPE, detail voidptr) ? {
+	ht.parent_stack.pop() or {}
 	if typ in markdown.self_closing_block_types {
 		return
 	}
@@ -206,6 +295,7 @@ fn (mut ht HtmlRenderer) enter_span(typ MD_SPANTYPE, detail voidptr) ? {
 		return
 	}
 
+	ht.parent_stack.push(ParentType(typ))
 	tag_name := markdown.html_span_tag_names[typ] or { return }
 
 	ht.writer.write_byte(`<`)
@@ -214,12 +304,12 @@ fn (mut ht HtmlRenderer) enter_span(typ MD_SPANTYPE, detail voidptr) ? {
 	match typ {
 		.md_span_a {
 			a_details := unsafe { &C.MD_SPAN_A_DETAIL(detail) }
-			ht.render_md_attribute('href', a_details.href, '', '')
-			ht.render_md_attribute('title', a_details.title, '', '')
+			ht.render_md_attribute('href', a_details.href)
+			ht.render_md_attribute('title', a_details.title)
 		}
 		.md_span_img {
 			img_details := unsafe { &C.MD_SPAN_IMG_DETAIL(detail) }
-			ht.render_md_attribute('src', img_details.src, '', '')
+			ht.render_md_attribute('src', img_details.src)
 			ht.render_opening_attribute('alt', true)
 			ht.image_nesting_level++
 			return
@@ -229,7 +319,7 @@ fn (mut ht HtmlRenderer) enter_span(typ MD_SPANTYPE, detail voidptr) ? {
 		}
 		.md_span_wikilink {
 			wikilink_details := unsafe { &C.MD_SPAN_WIKILINK_DETAIL(detail) }
-			ht.render_md_attribute('data-target', wikilink_details.target, '', '')
+			ht.render_md_attribute('data-target', wikilink_details.target)
 		}
 		else {}
 	}
@@ -241,13 +331,15 @@ fn (mut ht HtmlRenderer) leave_span(typ MD_SPANTYPE, detail voidptr) ? {
 		if ht.image_nesting_level == 1 && typ == .md_span_img {
 			ht.render_closing_attribute()
 			img_details := unsafe { &C.MD_SPAN_IMG_DETAIL(detail) }
-			ht.render_md_attribute('title', img_details.title, '', '')
+			ht.render_md_attribute('title', img_details.title)
 			ht.writer.write_string(' />')
 			ht.image_nesting_level--
+			ht.parent_stack.pop() or {}
 		}
 		return
 	}
 
+	ht.parent_stack.pop() or {}
 	tag_name := markdown.html_span_tag_names[typ] or { return }
 	ht.writer.write_byte(`<`)
 	ht.writer.write_byte(`/`)
@@ -275,7 +367,12 @@ fn (mut ht HtmlRenderer) text(typ MD_TEXTTYPE, text string) ? {
 			ht.writer.write_string(text)
 		}
 		else {
-			ht.writer.write_string(html.escape(text, quote: false))
+			if parent := ht.parent_stack.peek() {
+				transformed := ht.transformer.transform_content(parent, text)
+				ht.writer.write_string(transformed)
+			} else {
+				ht.writer.write_string(html.escape(text, quote: false))
+			}
 		}
 	}
 }
