@@ -107,8 +107,8 @@ pub struct C.MD_ATTRIBUTE {
 pub:
 	text           &char
 	size           u32
-	substr_types   MD_TEXTTYPE
-	substr_offsets u32
+	substr_types   &MD_TEXTTYPE
+	substr_offsets &u32
 }
 
 [typedef]
@@ -129,7 +129,7 @@ pub:
 [typedef]
 pub struct C.MD_BLOCK_LI_DETAIL {
 pub:
-	is_task          int
+	is_task          bool
 	task_mark        u8
 	task_mark_offset u32
 }
