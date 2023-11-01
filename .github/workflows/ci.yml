@@ -1,0 +1,27 @@
+name: Test
+
+on: [push, pull_request]
+
+jobs:
+  ubuntu-latest:
+    runs-on: ubuntu-latest
+    if: >
+        github.event_name != 'push'
+        || github.event.ref == 'refs/heads/master'
+        || github.event.repository.full_name != 'vlang/markdown'
+    steps:
+      - name: Checkout Latest V
+        uses: actions/checkout@v4
+        with:
+          repository: vlang/v
+          path: v
+      - name: Build V
+        run: cd v && make && ./v symlink -githubci && cd -
+
+      - name: Checkout markdown (for tests)
+        uses: actions/checkout@v2
+        with:
+          path: markdown
+
+      - name: Run tests
+        run: cd markdown && v test .
