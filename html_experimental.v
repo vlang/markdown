@@ -281,13 +281,16 @@ fn (mut ht HtmlRenderer) enter_block(typ MD_BLOCKTYPE, detail voidptr) ? {
 }
 
 fn (mut ht HtmlRenderer) leave_block(typ MD_BLOCKTYPE, detail voidptr) ? {
+	if ht.must_escape_html {
+		ht.must_escape_html = false
+	}
+
 	ht.render_content()
 	ht.parent_stack.pop() or {}
 	if typ in markdown.self_closing_block_types {
 		return
 	}
 	if typ == .md_block_code {
-		ht.must_escape_html = true
 		ht.writer.write_string('</code>')
 	}
 	tag_name := markdown.html_block_tag_names[typ] or { return }
@@ -351,6 +354,10 @@ fn (mut ht HtmlRenderer) enter_span(typ MD_SPANTYPE, detail voidptr) ? {
 }
 
 fn (mut ht HtmlRenderer) leave_span(typ MD_SPANTYPE, detail voidptr) ? {
+	if ht.must_escape_html {
+		ht.must_escape_html = false
+	}
+
 	if ht.image_nesting_level > 0 {
 		if ht.image_nesting_level == 1 && typ == .md_span_img {
 			ht.render_closing_attribute()
