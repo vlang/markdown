@@ -119,7 +119,7 @@ mut:
 	content_writer      strings.Builder = strings.new_builder(200)
 	writer              strings.Builder = strings.new_builder(200)
 	image_nesting_level int
-	must_escape_html bool
+	must_escape_html    bool
 }
 
 fn (mut ht HtmlRenderer) str() string {
