@@ -119,6 +119,7 @@ mut:
 	content_writer      strings.Builder = strings.new_builder(200)
 	writer              strings.Builder = strings.new_builder(200)
 	image_nesting_level int
+	must_escape_html bool
 }
 
 fn (mut ht HtmlRenderer) str() string {
@@ -255,6 +256,7 @@ fn (mut ht HtmlRenderer) enter_block(typ MD_BLOCKTYPE, detail voidptr) ? {
 
 	// Extra HTML for li/code items
 	if typ == .md_block_code {
+		ht.must_escape_html = true
 		details := unsafe { &C.MD_BLOCK_CODE_DETAIL(detail) }
 		ht.writer.write_string('<code')
 		ht.render_md_attribute('class', details.lang,
@@ -285,6 +287,7 @@ fn (mut ht HtmlRenderer) leave_block(typ MD_BLOCKTYPE, detail voidptr) ? {
 		return
 	}
 	if typ == .md_block_code {
+		ht.must_escape_html = true
 		ht.writer.write_string('</code>')
 	}
 	tag_name := markdown.html_block_tag_names[typ] or { return }
@@ -386,7 +389,11 @@ fn (mut ht HtmlRenderer) text(typ MD_TEXTTYPE, text string) ? {
 			ht.writer.write_string(html.unescape(text, all: true))
 		}
 		.md_text_html {
-			ht.writer.write_string(text)
+			if ht.must_escape_html {
+				ht.writer.write_string(html.escape(text, quote: false))
+			} else {
+				ht.writer.write_string(text)
+			}
 		}
 		else {
 			if ht.image_nesting_level == 0 {
