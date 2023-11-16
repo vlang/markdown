@@ -33,12 +33,12 @@ import datatypes { Stack }
 
 pub type ParentType = MD_BLOCKTYPE | MD_SPANTYPE
 
-// HtmlTransformer transforms converted HTML elements (limited 
-// to attribute and content for now) from markdown before incorporated 
-// into the final output. 
-// 
-// When implementing an HtmlTransformer, escaping the content is up 
-// to you. However, it is best to wrap the values you don't need with 
+// HtmlTransformer transforms converted HTML elements (limited
+// to attribute and content for now) from markdown before incorporated
+// into the final output.
+//
+// When implementing an HtmlTransformer, escaping the content is up
+// to you. However, it is best to wrap the values you don't need with
 // `markdown.default_html_transformer.transform_{attribute|content}`
 pub interface HtmlTransformer {
 	transform_attribute(parent ParentType, name string, value string) string
@@ -69,7 +69,7 @@ pub fn (t AttrTransformerFn) transform_attribute(parent ParentType, name string,
 }
 
 pub fn (t AttrTransformerFn) transform_content(parent ParentType, text string) string {
-	return default_html_transformer.transform_content(parent, text)
+	return markdown.default_html_transformer.transform_content(parent, text)
 }
 
 pub fn (mut t AttrTransformerFn) config_set(key string, val string) {}
@@ -77,7 +77,7 @@ pub fn (mut t AttrTransformerFn) config_set(key string, val string) {}
 pub type ContentTransformerFn = fn (ParentType, string) string
 
 pub fn (t ContentTransformerFn) transform_attribute(parent ParentType, name string, value string) string {
-	return default_html_transformer.transform_attribute(parent, name, value)
+	return markdown.default_html_transformer.transform_attribute(parent, name, value)
 }
 
 pub fn (t ContentTransformerFn) transform_content(parent ParentType, text string) string {
@@ -113,10 +113,10 @@ fn tos_attribute(attr &C.MD_ATTRIBUTE, mut wr strings.Builder) {
 
 pub struct HtmlRenderer {
 pub mut:
-	transformer         HtmlTransformer = markdown.default_html_transformer
+	transformer HtmlTransformer = markdown.default_html_transformer
 mut:
 	parent_stack        Stack[ParentType]
-	content_writer        strings.Builder = strings.new_builder(200)
+	content_writer      strings.Builder = strings.new_builder(200)
 	writer              strings.Builder = strings.new_builder(200)
 	image_nesting_level int
 }
@@ -137,10 +137,10 @@ fn (mut ht HtmlRenderer) render_closing_attribute() {
 	ht.writer.write_byte(`"`)
 }
 
-[params]
+@[params]
 struct MdAttributeConfig {
-	prefix string
-	suffix string
+	prefix      string
+	suffix      string
 	setting_key string
 }
 
@@ -173,7 +173,7 @@ fn (mut ht HtmlRenderer) render_attribute(key string, value string) {
 		} else {
 			value
 		}
-		
+
 		ht.writer.write_string(transformed)
 		ht.render_closing_attribute()
 	}
@@ -257,7 +257,10 @@ fn (mut ht HtmlRenderer) enter_block(typ MD_BLOCKTYPE, detail voidptr) ? {
 	if typ == .md_block_code {
 		details := unsafe { &C.MD_BLOCK_CODE_DETAIL(detail) }
 		ht.writer.write_string('<code')
-		ht.render_md_attribute('class', details.lang, prefix: 'language-', setting_key: 'code_language')
+		ht.render_md_attribute('class', details.lang,
+			prefix: 'language-'
+			setting_key: 'code_language'
+		)
 		ht.writer.write_byte(`>`)
 	} else if typ == .md_block_li {
 		details := unsafe { &C.MD_BLOCK_LI_DETAIL(detail) }

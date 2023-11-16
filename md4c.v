@@ -1,5 +1,5 @@
 /*
- * MD4C: Markdown parser for C
+* MD4C: Markdown parser for C
  * (http://github.com/mity/md4c)
  *
  * Copyright (c) 2016-2019 Martin Mitáš
@@ -40,7 +40,7 @@ type TextFn = fn (t MD_TEXTTYPE, tx &char, s u32, u voidptr) int
 type DebugFn = fn (m &char, u voidptr)
 
 pub enum MD_BLOCKTYPE {
-	md_block_doc = 0
+	md_block_doc   = 0
 	md_block_quote
 	md_block_ul
 	md_block_ol
@@ -59,7 +59,7 @@ pub enum MD_BLOCKTYPE {
 }
 
 pub enum MD_TEXTTYPE {
-	md_text_normal = 0
+	md_text_normal    = 0
 	md_text_null_char
 	md_text_br
 	md_text_softbr
@@ -89,7 +89,7 @@ pub enum MD_ALIGN {
 	md_align_right
 }
 
-[typedef]
+@[typedef]
 pub struct C.MD_PARSER {
 pub:
 	abi_version u32
@@ -102,7 +102,7 @@ pub:
 	debug_log   DebugFn
 }
 
-[typedef]
+@[typedef]
 pub struct C.MD_ATTRIBUTE {
 pub:
 	text           &char
@@ -111,14 +111,14 @@ pub:
 	substr_offsets &u32
 }
 
-[typedef]
+@[typedef]
 pub struct C.MD_BLOCK_UL_DETAIL {
 pub:
 	is_tight int
 	mark     u8
 }
 
-[typedef]
+@[typedef]
 pub struct C.MD_BLOCK_OL_DETAIL {
 pub:
 	start          u32
@@ -126,7 +126,7 @@ pub:
 	mark_delimiter u8
 }
 
-[typedef]
+@[typedef]
 pub struct C.MD_BLOCK_LI_DETAIL {
 pub:
 	is_task          bool
@@ -134,13 +134,13 @@ pub:
 	task_mark_offset u32
 }
 
-[typedef]
+@[typedef]
 pub struct C.MD_BLOCK_H_DETAIL {
 pub:
 	level u32
 }
 
-[typedef]
+@[typedef]
 pub struct C.MD_BLOCK_CODE_DETAIL {
 pub:
 	info       C.MD_ATTRIBUTE
@@ -148,27 +148,27 @@ pub:
 	fence_char u8
 }
 
-[typedef]
+@[typedef]
 pub struct C.MD_BLOCK_TD_DETAIL {
 pub:
 	align MD_ALIGN
 }
 
-[typedef]
+@[typedef]
 pub struct C.MD_SPAN_A_DETAIL {
 pub:
 	href  C.MD_ATTRIBUTE
 	title C.MD_ATTRIBUTE
 }
 
-[typedef]
+@[typedef]
 pub struct C.MD_SPAN_IMG_DETAIL {
 pub:
 	src   C.MD_ATTRIBUTE
 	title C.MD_ATTRIBUTE
 }
 
-[typedef]
+@[typedef]
 pub struct C.MD_SPAN_WIKILINK_DETAIL {
 pub:
 	target C.MD_ATTRIBUTE
