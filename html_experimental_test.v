@@ -208,8 +208,7 @@ fn test_render_raw_html_inside_code_block() {
 }
 
 fn test_render_raw_html_alongside_code_block() {
-	assert to_html_experimental('```v\nhtml.parse(\'<h1 class="title">Hello world!</h1>\')\n```\n<h1 class="title">Hello world!</h1>') ==
-		'<pre><code class="language-v">html.parse(\'&lt;h1 class="title"&gt;Hello world!&lt;/h1&gt;\')\n</code></pre><h1 class="title">Hello world!</h1>'
+	assert to_html_experimental('```v\nhtml.parse(\'<h1 class="title">Hello world!</h1>\')\n```\n<h1 class="title">Hello world!</h1>') == '<pre><code class="language-v">html.parse(\'&lt;h1 class="title"&gt;Hello world!&lt;/h1&gt;\')\n</code></pre><h1 class="title">Hello world!</h1>'
 }
 
 fn test_render_entity() {

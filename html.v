@@ -31,13 +31,11 @@ import strings
 
 fn C.md_html(orig_input &char, orig_input_size u32, process_output ProcessFn, userdata voidptr, parser_flags u32, renderer_flags u32) int
 
-const (
-	need_html_esc_flag             = 0x1
-	need_url_esc_flag              = 0x2
-	md_html_flag_debug             = 0x0001
-	md_html_flag_verbatim_entities = 0x0002
-	md_html_flag_skip_utf8_bom     = 0x0004
-)
+const need_html_esc_flag = 0x1
+const need_url_esc_flag = 0x2
+const md_html_flag_debug = 0x0001
+const md_html_flag_verbatim_entities = 0x0002
+const md_html_flag_skip_utf8_bom = 0x0004
 
 type ProcessFn = fn (t &char, s u32, x voidptr)
 
