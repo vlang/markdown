@@ -26,8 +26,8 @@
 */
 module markdown
 
-#flag -I @VROOT/lib/md4c
-#flag @VROOT/lib/md4c-lib.o
+#flag -I @VROOT/thirdparty/md4c
+#flag @VROOT/thirdparty/md4c-lib.o
 #include "md4c.h"
 #include "md4c-html.h"
 
