@@ -258,7 +258,7 @@ fn (mut ht HtmlRenderer) enter_block(typ MD_BLOCKTYPE, detail voidptr) ? {
 		details := unsafe { &C.MD_BLOCK_CODE_DETAIL(detail) }
 		ht.writer.write_string('<code')
 		ht.render_md_attribute('class', details.lang,
-			prefix: 'language-'
+			prefix:      'language-'
 			setting_key: 'code_language'
 		)
 		ht.writer.write_byte(`>`)

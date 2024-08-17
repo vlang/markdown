@@ -40,7 +40,7 @@ type TextFn = fn (t MD_TEXTTYPE, tx &char, s u32, u voidptr) int
 type DebugFn = fn (m &char, u voidptr)
 
 pub enum MD_BLOCKTYPE {
-	md_block_doc   = 0
+	md_block_doc = 0
 	md_block_quote
 	md_block_ul
 	md_block_ol
@@ -59,7 +59,7 @@ pub enum MD_BLOCKTYPE {
 }
 
 pub enum MD_TEXTTYPE {
-	md_text_normal    = 0
+	md_text_normal = 0
 	md_text_null_char
 	md_text_br
 	md_text_softbr
@@ -179,13 +179,13 @@ fn C.md_parse(text &char, size u32, parser &C.MD_PARSER, userdata voidptr) int
 pub fn new(parser_flags u32, enter_block_cb BlockFn, leave_block_cb BlockFn, enter_span_cb SpanFn, leave_span_cb SpanFn, text_cb TextFn, debug_cb DebugFn) C.MD_PARSER {
 	return C.MD_PARSER{
 		abi_version: 0
-		flags: parser_flags
+		flags:       parser_flags
 		enter_block: enter_block_cb
 		leave_block: leave_block_cb
-		enter_span: enter_span_cb
-		leave_span: leave_span_cb
-		text: text_cb
-		debug_log: debug_cb
+		enter_span:  enter_span_cb
+		leave_span:  leave_span_cb
+		text:        text_cb
+		debug_log:   debug_cb
 	}
 }
 
