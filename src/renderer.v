@@ -39,8 +39,9 @@ mut:
 }
 
 fn renderer_handle_error(err IError) int {
-	if err.code() != 0 {
-		return err.code()
+	ecode := err.code()
+	if ecode != 0 {
+		return ecode
 	} else {
 		return 1
 	}
@@ -67,9 +68,8 @@ fn renderer_leave_span_cb(typ MD_SPANTYPE, detail voidptr, mut renderer Renderer
 }
 
 fn renderer_text_cb(typ MD_TEXTTYPE, text &char, size u32, mut renderer Renderer) int {
-	renderer.text(typ, unsafe { text.vstring_with_len(int(size)) }) or {
-		return renderer_handle_error(err)
-	}
+	s := unsafe { text.vstring_with_len(int(size)) }
+	renderer.text(typ, s) or { return renderer_handle_error(err) }
 	return 0
 }
 
@@ -81,11 +81,10 @@ fn renderer_debug_log_cb(msg &char, mut renderer Renderer) {
 pub fn render(src string, mut renderer Renderer) !string {
 	parser := new(u32(C.MD_DIALECT_GITHUB), renderer_enter_block_cb, renderer_leave_block_cb,
 		renderer_enter_span_cb, renderer_leave_span_cb, renderer_text_cb, renderer_debug_log_cb)
-
 	err_code := parse(src.str, u32(src.len), &parser, &renderer)
 	if err_code != 0 {
 		return error_with_code('Something went wrong while parsing.', err_code)
 	}
-
-	return renderer.str().trim_space()
+	res := renderer.str()
+	return res.trim_space()
 }
