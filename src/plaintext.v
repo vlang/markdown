@@ -2,12 +2,12 @@ module markdown
 
 import strings
 
-struct PlaintextRenderer {
+pub struct PlaintextRenderer {
 mut:
 	writer strings.Builder = strings.new_builder(200)
 }
 
-fn (mut pt PlaintextRenderer) str() string {
+pub fn (mut pt PlaintextRenderer) str() string {
 	return pt.writer.str()
 }
 
