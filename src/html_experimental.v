@@ -42,7 +42,7 @@ pub fn (t AttrTransformerFn) transform_attribute(parent ParentType, name string,
 }
 
 pub fn (t AttrTransformerFn) transform_content(parent ParentType, text string) string {
-	return markdown.default_html_transformer.transform_content(parent, text)
+	return default_html_transformer.transform_content(parent, text)
 }
 
 pub fn (mut t AttrTransformerFn) config_set(key string, val string) {}
@@ -50,7 +50,7 @@ pub fn (mut t AttrTransformerFn) config_set(key string, val string) {}
 pub type ContentTransformerFn = fn (ParentType, string) string
 
 pub fn (t ContentTransformerFn) transform_attribute(parent ParentType, name string, value string) string {
-	return markdown.default_html_transformer.transform_attribute(parent, name, value)
+	return default_html_transformer.transform_attribute(parent, name, value)
 }
 
 pub fn (t ContentTransformerFn) transform_content(parent ParentType, text string) string {
@@ -86,7 +86,7 @@ fn tos_attribute(attr &C.MD_ATTRIBUTE, mut wr strings.Builder) {
 
 pub struct HtmlRenderer {
 pub mut:
-	transformer HtmlTransformer = markdown.default_html_transformer
+	transformer HtmlTransformer = default_html_transformer
 mut:
 	parent_stack        Stack[ParentType]
 	content_writer      strings.Builder = strings.new_builder(200)
@@ -186,7 +186,7 @@ const self_closing_block_types = [MD_BLOCKTYPE.md_block_hr]
 
 fn (mut ht HtmlRenderer) enter_block(typ MD_BLOCKTYPE, detail voidptr) ? {
 	ht.parent_stack.push(ParentType(typ))
-	tag_name := markdown.html_block_tag_names[typ] or { return }
+	tag_name := html_block_tag_names[typ] or { return }
 	ht.writer.write_byte(`<`)
 	ht.writer.write_string(tag_name)
 	match typ {
@@ -220,7 +220,7 @@ fn (mut ht HtmlRenderer) enter_block(typ MD_BLOCKTYPE, detail voidptr) ? {
 		}
 		else {}
 	}
-	if typ in markdown.self_closing_block_types {
+	if typ in self_closing_block_types {
 		ht.writer.write_byte(` `)
 		ht.writer.write_byte(`/`)
 	}
@@ -254,13 +254,13 @@ fn (mut ht HtmlRenderer) enter_block(typ MD_BLOCKTYPE, detail voidptr) ? {
 fn (mut ht HtmlRenderer) leave_block(typ MD_BLOCKTYPE, detail voidptr) ? {
 	ht.render_content()
 	ht.parent_stack.pop() or {}
-	if typ in markdown.self_closing_block_types {
+	if typ in self_closing_block_types {
 		return
 	}
 	if typ == .md_block_code {
 		ht.writer.write_string('</code>')
 	}
-	tag_name := markdown.html_block_tag_names[typ] or { return }
+	tag_name := html_block_tag_names[typ] or { return }
 	ht.writer.write_byte(`<`)
 	ht.writer.write_byte(`/`)
 	ht.writer.write_string(tag_name)
@@ -290,7 +290,7 @@ fn (mut ht HtmlRenderer) enter_span(typ MD_SPANTYPE, detail voidptr) ? {
 	}
 
 	ht.parent_stack.push(ParentType(typ))
-	tag_name := markdown.html_span_tag_names[typ] or { return }
+	tag_name := html_span_tag_names[typ] or { return }
 
 	ht.writer.write_byte(`<`)
 	ht.writer.write_string(tag_name)
@@ -335,7 +335,7 @@ fn (mut ht HtmlRenderer) leave_span(typ MD_SPANTYPE, detail voidptr) ? {
 
 	ht.render_content()
 	ht.parent_stack.pop() or {}
-	tag_name := markdown.html_span_tag_names[typ] or { return }
+	tag_name := html_span_tag_names[typ] or { return }
 	ht.writer.write_byte(`<`)
 	ht.writer.write_byte(`/`)
 	ht.writer.write_string(tag_name)
