@@ -16,7 +16,7 @@ jobs:
           repository: vlang/v
           path: v
       - name: Build V
-        run: cd v && make && ./v symlink -githubci && cd -
+        run: cd v && make && ./v symlink && cd -
 
       - name: Checkout markdown (for tests)
         uses: actions/checkout@v2
