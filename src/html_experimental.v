@@ -64,7 +64,7 @@ fn tos_attribute(attr &C.MD_ATTRIBUTE, mut wr strings.Builder) {
 		typ := unsafe { MD_TEXTTYPE(attr.substr_types[i]) }
 		off := unsafe { attr.substr_offsets[i] }
 		size := unsafe { attr.substr_offsets[i + 1] - off }
-		text := unsafe { (attr.text + off).vstring_with_len(int(size)) }
+		text := unsafe { (&char(attr.text) + off).vstring_with_len(int(size)) }
 
 		match typ {
 			.md_text_null_char {

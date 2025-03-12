@@ -3129,6 +3129,7 @@ md_collect_marks(MD_CTX* ctx, const MD_LINE* lines, int n_lines, int table_mode)
                     /* Advance the current line accordingly. */
                     if(off > line_end) {
                         line = md_lookup_line(off, line, line_term - line);
+					    if(NULL == line) exit(15);
                         line_end = line->end;
                     }
                     continue;

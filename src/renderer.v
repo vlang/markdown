@@ -55,7 +55,7 @@ fn renderer_debug_log_cb(msg &char, mut renderer Renderer) {
 pub fn render(src string, mut renderer Renderer) !string {
 	parser := new(u32(C.MD_DIALECT_GITHUB), renderer_enter_block_cb, renderer_leave_block_cb,
 		renderer_enter_span_cb, renderer_leave_span_cb, renderer_text_cb, renderer_debug_log_cb)
-	err_code := parse(src.str, u32(src.len), &parser, &renderer)
+	err_code := parse(voidptr(src.str), u32(src.len), &parser, &renderer)
 	if err_code != 0 {
 		return error_with_code('Something went wrong while parsing.', err_code)
 	}
