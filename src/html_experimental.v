@@ -92,7 +92,7 @@ mut:
 	content_writer      strings.Builder = strings.new_builder(200)
 	writer              strings.Builder = strings.new_builder(200)
 	image_nesting_level int
-	last_htag_open_pos int
+	last_htag_open_pos  int
 }
 
 fn (mut ht HtmlRenderer) str() string {
@@ -255,15 +255,16 @@ fn (mut ht HtmlRenderer) enter_block(typ MD_BLOCKTYPE, detail voidptr) ? {
 }
 
 fn title_to_id(title string) string {
-   no_amps1 := title.replace('&amp;', '&')
-   no_amps2 := no_amps1.replace('&', 'and')
-   no_spaces := no_amps2.replace(' ', '-')
-   lower := no_spaces.to_lower()
-   a := lower.bytes()
-   allowed := a.filter(it == `-` || it.is_alnum())
-   res := allowed.bytestr()
-   return res
+	no_amps1 := title.replace('&amp;', '&')
+	no_amps2 := no_amps1.replace('&', 'and')
+	no_spaces := no_amps2.replace(' ', '-')
+	lower := no_spaces.to_lower()
+	a := lower.bytes()
+	allowed := a.filter(it == `-` || it.is_alnum())
+	res := allowed.bytestr()
+	return res
 }
+
 fn (mut ht HtmlRenderer) leave_block(typ MD_BLOCKTYPE, detail voidptr) ? {
 	ht.render_content()
 	ht.parent_stack.pop() or {}

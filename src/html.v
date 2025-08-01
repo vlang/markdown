@@ -19,6 +19,7 @@ fn write_data_cb(txt &char, size u32, mut sb strings.Builder) {
 
 pub fn to_html(input string) string {
 	mut wr := strings.new_builder(200)
-	C.md_html(voidptr(input.str), input.len, write_data_cb, &wr, C.MD_DIALECT_GITHUB, 0)
+	C.md_html(voidptr(input.str), input.len, write_data_cb, &wr, C.MD_DIALECT_GITHUB,
+		0)
 	return wr.str().trim_space()
 }
