@@ -92,6 +92,7 @@ mut:
 	content_writer      strings.Builder = strings.new_builder(200)
 	writer              strings.Builder = strings.new_builder(200)
 	image_nesting_level int
+	last_htag_open_pos int
 }
 
 fn (mut ht HtmlRenderer) str() string {
@@ -187,12 +188,14 @@ const self_closing_block_types = [MD_BLOCKTYPE.md_block_hr]
 fn (mut ht HtmlRenderer) enter_block(typ MD_BLOCKTYPE, detail voidptr) ? {
 	ht.parent_stack.push(ParentType(typ))
 	tag_name := html_block_tag_names[typ] or { return }
+	ht.writer.write_byte(`\n`)
 	ht.writer.write_byte(`<`)
 	ht.writer.write_string(tag_name)
 	match typ {
 		.md_block_h {
 			level := unsafe { &C.MD_BLOCK_H_DETAIL(detail) }.level
 			ht.writer.write_string('${level}')
+			ht.last_htag_open_pos = ht.writer.len
 		}
 		.md_block_ol {
 			details := unsafe { &C.MD_BLOCK_OL_DETAIL(detail) }
@@ -251,6 +254,16 @@ fn (mut ht HtmlRenderer) enter_block(typ MD_BLOCKTYPE, detail voidptr) ? {
 	}
 }
 
+fn title_to_id(title string) string {
+   no_amps1 := title.replace('&amp;', '&')
+   no_amps2 := no_amps1.replace('&', 'and')
+   no_spaces := no_amps2.replace(' ', '-')
+   lower := no_spaces.to_lower()
+   a := lower.bytes()
+   allowed := a.filter(it == `-` || it.is_alnum())
+   res := allowed.bytestr()
+   return res
+}
 fn (mut ht HtmlRenderer) leave_block(typ MD_BLOCKTYPE, detail voidptr) ? {
 	ht.render_content()
 	ht.parent_stack.pop() or {}
@@ -267,6 +280,10 @@ fn (mut ht HtmlRenderer) leave_block(typ MD_BLOCKTYPE, detail voidptr) ? {
 	if typ == .md_block_h {
 		level := unsafe { &C.MD_BLOCK_H_DETAIL(detail) }.level
 		ht.writer.write_string('${level}')
+		title := ht.writer.cut_to(ht.last_htag_open_pos)
+		id := title_to_id(title.find_between('>', '<'))
+		ht.writer.write_string(' id="${id}"')
+		ht.writer.write_string(title)
 	}
 	ht.writer.write_byte(`>`)
 }
