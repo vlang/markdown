@@ -18,8 +18,8 @@ end'
 fn test_render_code_block_as_html() {
 	mut xx := markdown.HtmlRenderer{}
 	out := markdown.render(code_block, mut xx)!
-	assert out.starts_with('<p>start</p><pre><code>├── static/')
-	assert out.ends_with('└── main.v\n</code></pre><p>end</p>')
+	assert out.starts_with('<p>start</p>\n<pre><code>├── static/')
+	assert out.ends_with('└── main.v\n</code></pre>\n<p>end</p>')
 }
 
 fn test_render_code_block_as_highlighted_html() {
@@ -29,8 +29,8 @@ fn test_render_code_block_as_highlighted_html() {
 	}
 	out := markdown.render(code_block, mut xx)!
 	assert highlighter.ok == 1
-	assert out.starts_with('<p>start</p><pre><code>├── static/')
-	assert out.ends_with('└── main.v\n</code></pre><p>end</p>')
+	assert out.starts_with('<p>start</p>\n<pre><code>├── static/')
+	assert out.ends_with('└── main.v\n</code></pre>\n<p>end</p>')
 }
 
 struct MdHtmlCodeHighlighter {

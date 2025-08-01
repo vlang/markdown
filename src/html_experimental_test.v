@@ -3,7 +3,7 @@ import markdown
 fn test_render() {
 	text := '# Hello World\nhello **bold**'
 	out := markdown.to_html_experimental(text)
-	assert out == '<h1>Hello World</h1><p>hello <strong>bold</strong></p>'
+	assert out.replace('\n', '') == '<h1 id="hello-world">Hello World</h1><p>hello <strong>bold</strong></p>'
 }
 
 fn test_formatting() {
@@ -22,7 +22,7 @@ fn test_formatting() {
 }
 
 fn test_render_blockquote() {
-	assert markdown.to_html_experimental('> hello world') == '<blockquote><p>hello world</p></blockquote>'
+	assert markdown.to_html_experimental('> hello world').replace('\n', '') == '<blockquote><p>hello world</p></blockquote>'
 }
 
 const item_checked = '<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled checked>'
@@ -33,7 +33,7 @@ fn test_render_ul() {
 	assert markdown.to_html_experimental('
 - test
 - abcd
-    '.trim_space()) == '<ul><li>test</li><li>abcd</li></ul>'
+    '.trim_space()).replace('\n','') == '<ul><li>test</li><li>abcd</li></ul>'
 }
 
 fn test_render_ul_checkbox() {
@@ -41,7 +41,7 @@ fn test_render_ul_checkbox() {
 - [x] test
 - [X] abcd
 - [ ] defg
-    '.trim_space()) == '<ul>${item_checked}test</li>${item_checked}abcd</li>${item_unchecked}defg</li></ul>'
+    '.trim_space()).replace('\n', '') == '<ul>${item_checked}test</li>${item_checked}abcd</li>${item_unchecked}defg</li></ul>'
 }
 
 fn test_render_ul_mixed() {
@@ -49,29 +49,30 @@ fn test_render_ul_mixed() {
 - [x] test
 - abcd
 - [ ] defg
-    '.trim_space()) == '<ul>${item_checked}test</li><li>abcd</li>${item_unchecked}defg</li></ul>'
+    '.trim_space()).replace('\n', '') == '<ul>${item_checked}test</li><li>abcd</li>${item_unchecked}defg</li></ul>'
 }
 
 fn test_render_ol() {
 	assert markdown.to_html_experimental('
 1. test
 2. abcd
-    '.trim_space()) == '<ol><li>test</li><li>abcd</li></ol>'
+    '.trim_space()).replace('\n', '') == '<ol><li>test</li><li>abcd</li></ol>'
 }
 
 fn test_render_ol_diff_start() {
 	assert markdown.to_html_experimental('
 4. test
 7. abcd
-    '.trim_space()) == '<ol start="4"><li>test</li><li>abcd</li></ol>'
+    '.trim_space()).replace('\n', '') == '<ol start="4"><li>test</li><li>abcd</li></ol>'
 }
 
 fn test_render_ol_checkbox() {
-	assert markdown.to_html_experimental('
+	res := markdown.to_html_experimental('
 1. [x] test
 2. [X] abcd
 3. [ ] defg
-    '.trim_space()) == '<ol>${item_checked}test</li>${item_checked}abcd</li>${item_unchecked}defg</li></ol>'
+    '.trim_space()).replace('\n', '')
+    assert res == '<ol>${item_checked}test</li>${item_checked}abcd</li>${item_unchecked}defg</li></ol>'
 }
 
 fn test_render_ol_mixed() {
@@ -79,11 +80,11 @@ fn test_render_ol_mixed() {
 1. [x] test
 2. abcd
 3. [ ] defg
-    '.trim_space()) == '<ol>${item_checked}test</li><li>abcd</li>${item_unchecked}defg</li></ol>'
+    '.trim_space()).replace('\n', '') == '<ol>${item_checked}test</li><li>abcd</li>${item_unchecked}defg</li></ol>'
 }
 
 fn test_render_ul_ol_mixed() {
-	assert markdown.to_html_experimental('
+	res := markdown.to_html_experimental('
 1. Things to do
    - [x] Task 1
    - [ ] Task 2
@@ -94,7 +95,8 @@ fn test_render_ul_ol_mixed() {
 - Hey
    1. Ordered 1
    2. Ordered 2
-    '.trim_space()) == [
+    '.trim_space())
+   assert res.replace('\n', '') == [
 		'<ol><li>Things to do<ul>${item_checked}Task 1</li>${item_unchecked}Task 2</li></ul></li>',
 		'<li>Notes<ul><li>Note 1</li><li>Note 2</li></ul></li></ol>',
 		'<ul><li>Hey<ol><li>Ordered 1</li><li>Ordered 2</li></ol></li></ul>',
@@ -107,12 +109,12 @@ fn test_render_hr() {
 }
 
 fn test_render_heading() {
-	assert markdown.to_html_experimental('# a') == '<h1>a</h1>'
-	assert markdown.to_html_experimental('## b') == '<h2>b</h2>'
-	assert markdown.to_html_experimental('### c') == '<h3>c</h3>'
-	assert markdown.to_html_experimental('#### d') == '<h4>d</h4>'
-	assert markdown.to_html_experimental('##### e') == '<h5>e</h5>'
-	assert markdown.to_html_experimental('###### f') == '<h6>f</h6>'
+	assert markdown.to_html_experimental('# a') == '<h1 id="a">a</h1>'
+	assert markdown.to_html_experimental('## b') == '<h2 id="b">b</h2>'
+	assert markdown.to_html_experimental('### c') == '<h3 id="c">c</h3>'
+	assert markdown.to_html_experimental('#### d') == '<h4 id="d">d</h4>'
+	assert markdown.to_html_experimental('##### e') == '<h5 id="e">e</h5>'
+	assert markdown.to_html_experimental('###### f') == '<h6 id="f">f</h6>'
 }
 
 fn test_render_heading_error() {
@@ -133,11 +135,13 @@ fn test_render_code_with_lang() {
 }
 
 fn test_render_table() {
-	assert markdown.to_html_experimental('
+	input := '
 |Column 1| Column 2 |
 |--------|---|
 |Item 1| Item 2 |
-	'.trim_space()) == '<table><thead><tr><th>Column 1</th><th>Column 2</th></tr></thead><tbody><tr><td>Item 1</td><td>Item 2</td></tr></tbody></table>'
+	'.trim_space()
+	res := markdown.to_html_experimental(input)
+    assert res.replace('\n','') == '<table><thead><tr><th>Column 1</th><th>Column 2</th></tr></thead><tbody><tr><td>Item 1</td><td>Item 2</td></tr></tbody></table>'
 }
 
 fn test_img() {
