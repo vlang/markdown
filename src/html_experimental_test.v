@@ -210,7 +210,7 @@ fn replace_href_with_google_link(parent markdown.ParentType, name string, value 
 
 fn test_attribute_transformer() ! {
 	mut renderer := markdown.HtmlRenderer{
-		transformer: &markdown.AttrTransformerFn(replace_href_with_google_link)
+		transformer: markdown.AttrTransformer{replace_href_with_google_link}
 	}
 	out := markdown.render('[should be google](.)', mut renderer)!
 	assert out == '<p><a href="https://google.com">should be google</a></p>'

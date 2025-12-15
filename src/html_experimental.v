@@ -36,16 +36,23 @@ pub const default_html_transformer = &DefaultHtmlTransformer{}
 
 pub type AttrTransformerFn = fn (ParentType, string, string) string
 
-pub fn (t AttrTransformerFn) transform_attribute(parent ParentType, name string, value string) string {
-	val := t(parent, name, value)
+pub struct AttrTransformer {
+pub mut:
+	callback AttrTransformerFn = fn (_ ParentType, _ string, _ string) string {
+		return ''
+	}
+}
+
+pub fn (t AttrTransformer) transform_attribute(parent ParentType, name string, value string) string {
+	val := t.callback(parent, name, value)
 	return val
 }
 
-pub fn (t AttrTransformerFn) transform_content(parent ParentType, text string) string {
+pub fn (t AttrTransformer) transform_content(parent ParentType, text string) string {
 	return default_html_transformer.transform_content(parent, text)
 }
 
-pub fn (mut t AttrTransformerFn) config_set(key string, val string) {}
+pub fn (mut t AttrTransformer) config_set(key string, val string) {}
 
 pub type ContentTransformerFn = fn (ParentType, string) string
 
