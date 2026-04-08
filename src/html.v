@@ -12,8 +12,9 @@ const md_html_flag_skip_utf8_bom = 0x0004
 
 type ProcessFn = fn (t &char, s u32, x voidptr)
 
-fn write_data_cb(txt &char, size u32, mut sb strings.Builder) {
+fn write_data_cb(txt &char, size u32, userdata voidptr) {
 	s := unsafe { tos(&u8(txt), int(size)) }
+	mut sb := unsafe { &strings.Builder(userdata) }
 	sb.write_string(s)
 }
 
