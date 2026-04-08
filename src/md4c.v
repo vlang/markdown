@@ -13,6 +13,7 @@ type TextFn = fn (t MD_TEXTTYPE, tx &char, s u32, u voidptr) int
 
 type DebugFn = fn (m &char, u voidptr)
 
+@[typedef]
 pub enum MD_BLOCKTYPE {
 	md_block_doc = 0
 	md_block_quote
@@ -32,6 +33,7 @@ pub enum MD_BLOCKTYPE {
 	md_block_td
 }
 
+@[typedef]
 pub enum MD_TEXTTYPE {
 	md_text_normal = 0
 	md_text_null_char
@@ -43,6 +45,7 @@ pub enum MD_TEXTTYPE {
 	md_text_latexmath
 }
 
+@[typedef]
 pub enum MD_SPANTYPE {
 	md_span_em
 	md_span_strong
@@ -56,6 +59,7 @@ pub enum MD_SPANTYPE {
 	md_span_u
 }
 
+@[typedef]
 pub enum MD_ALIGN {
 	md_align_default = 0
 	md_align_left
