@@ -12,38 +12,29 @@ mut:
 	debug_log(msg string)
 }
 
-fn renderer_handle_error(err IError) int {
-	ecode := err.code()
-	if ecode != 0 {
-		return ecode
-	} else {
-		return 1
-	}
-}
-
 fn renderer_enter_block_cb(typ MD_BLOCKTYPE, detail voidptr, mut renderer Renderer) int {
-	renderer.enter_block(typ, detail) or { return renderer_handle_error(err) }
+	renderer.enter_block(typ, detail) or { return 1 }
 	return 0
 }
 
 fn renderer_leave_block_cb(typ MD_BLOCKTYPE, detail voidptr, mut renderer Renderer) int {
-	renderer.leave_block(typ, detail) or { return renderer_handle_error(err) }
+	renderer.leave_block(typ, detail) or { return 1 }
 	return 0
 }
 
 fn renderer_enter_span_cb(typ MD_SPANTYPE, detail voidptr, mut renderer Renderer) int {
-	renderer.enter_span(typ, detail) or { return renderer_handle_error(err) }
+	renderer.enter_span(typ, detail) or { return 1 }
 	return 0
 }
 
 fn renderer_leave_span_cb(typ MD_SPANTYPE, detail voidptr, mut renderer Renderer) int {
-	renderer.leave_span(typ, detail) or { return renderer_handle_error(err) }
+	renderer.leave_span(typ, detail) or { return 1 }
 	return 0
 }
 
 fn renderer_text_cb(typ MD_TEXTTYPE, text &char, size u32, mut renderer Renderer) int {
 	s := unsafe { text.vstring_with_len(int(size)) }
-	renderer.text(typ, s) or { return renderer_handle_error(err) }
+	renderer.text(typ, s) or { return 1 }
 	return 0
 }
 
