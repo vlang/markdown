@@ -5,23 +5,39 @@ on: [push, pull_request]
 jobs:
   ubuntu-latest:
     runs-on: ubuntu-latest
+    env:
+      # Explicit test parallelism: a worker peaks near 0.25 GB,
+      # so this stays CPU-bound with ample headroom.
+      VJOBS: '4'
+      # Stop a failing test session at its first failure instead of
+      # running the whole suite to completion; the remaining files
+      # add no signal.
+      VTEST_FAIL_FAST: '1'
+    timeout-minutes: 60
     if: >
         github.event_name != 'push'
         || github.event.ref == 'refs/heads/master'
         || github.event.repository.full_name != 'vlang/markdown'
     steps:
       - name: Checkout Latest V
+        id: checkout_latest_v
         uses: actions/checkout@v4
         with:
           repository: vlang/v
           path: v
       - name: Build V
+        id: build_v
+        if: ${{ success() && !cancelled() && steps.checkout_latest_v.outcome == 'success' }}
         run: cd v && make && ./v symlink && cd -
 
       - name: Checkout markdown (for tests)
+        id: checkout_markdown_for_tests
+        if: ${{ success() && !cancelled() && steps.build_v.outcome == 'success' }}
         uses: actions/checkout@v2
         with:
           path: markdown
 
       - name: Run tests
+        id: run_tests
+        if: ${{ success() && !cancelled() && steps.checkout_markdown_for_tests.outcome == 'success' }}
         run: cd markdown && v test .
