@@ -245,3 +245,62 @@ fn test_content_transformer() ! {
 	out := markdown.render('```go\ntrue\n```', mut renderer)!
 	assert out == '<pre><code class="language-go"><span class="keyword">language: go >>> true\n</span></code></pre>'
 }
+
+fn test_render_escaped_entities_stay_escaped() {
+	assert markdown.to_html_experimental('&lt;script&gt;alert(1)&lt;/script&gt;') == '<p>&lt;script&gt;alert(1)&lt;/script&gt;</p>'
+}
+
+fn test_img_alt_quotes_are_escaped() {
+	assert markdown.to_html_experimental('![a"onerror="alert(1)](x.png)') == '<p><img src="x.png" alt="a&#34;onerror=&#34;alert(1)" /></p>'
+	assert markdown.to_html_experimental('![&quot;x](x.png)') == '<p><img src="x.png" alt="&#34;x" /></p>'
+}
+
+fn test_attributes_are_escaped_once() {
+	assert markdown.to_html_experimental('[x](http://a.com/?a=1&b=2)') == '<p><a href="http://a.com/?a=1&amp;b=2">x</a></p>'
+	assert markdown.to_html_experimental('[x](/?q=&lt;)') == '<p><a href="/?q=&lt;">x</a></p>'
+	assert markdown.to_html_experimental('[x](u "a &quot;b&quot;")') == '<p><a href="u" title="a &#34;b&#34;">x</a></p>'
+}
+
+fn test_render_soft_break() {
+	assert markdown.to_html_experimental('hello\nworld') == '<p>hello\nworld</p>'
+}
+
+fn test_img_alt_line_breaks() {
+	assert markdown.to_html_experimental('![a\nb](x.png)') == '<p><img src="x.png" alt="a b" /></p>'
+	assert markdown.to_html_experimental('![a\\\nb](x.png)') == '<p><img src="x.png" alt="a b" /></p>'
+}
+
+fn test_img_alt_raw_html_is_escaped() {
+	assert markdown.to_html_experimental('![<x title=" y" onerror="alert(1)">](/url)') == '<p><img src="/url" alt="&lt;x title=&#34; y&#34; onerror=&#34;alert(1)&#34;&gt;" /></p>'
+	assert markdown.to_html_experimental('![a <b>c</b> d](/url)') == '<p><img src="/url" alt="a &lt;b&gt;c&lt;/b&gt; d" /></p>'
+}
+
+struct AttrRecorder {
+mut:
+	calls []string
+}
+
+fn (r &AttrRecorder) transform_attribute(parent markdown.ParentType, name string, value string) string {
+	unsafe { r.calls << '${name}=${value}' }
+	return markdown.default_html_transformer.transform_attribute(parent, name, value)
+}
+
+fn (r &AttrRecorder) transform_content(parent markdown.ParentType, text string) string {
+	return markdown.default_html_transformer.transform_content(parent, text)
+}
+
+fn (mut r AttrRecorder) config_set(key string, val string) {
+	r.calls << 'config ${key}=${val}'
+}
+
+fn test_attribute_transformer_receives_decoded_values() ! {
+	mut recorder := &AttrRecorder{}
+	mut renderer := markdown.HtmlRenderer{
+		transformer: recorder
+	}
+	out := markdown.render('[x](/a?b=1&c=&lt; "t &quot;q&quot;")\n\n```c&#43;&#43;\nx\n```', mut
+		renderer)!
+	assert recorder.calls == ['href=/a?b=1&c=<', 'title=t "q"', 'class=language-c++',
+		'config code_language=c++']
+	assert out.replace('\n', '') == '<p><a href="/a?b=1&amp;c=&lt;" title="t &#34;q&#34;">x</a></p><pre><code class="language-c++">x</code></pre>'
+}
